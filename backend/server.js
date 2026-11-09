@@ -9,25 +9,44 @@ const app = express();
 app.set('trust proxy', 1);
 
 // =====================================
+// PROJECT URLS
+// =====================================
+
+const BACKEND_URL =
+  'https://backend-six-eta-71.vercel.app';
+
+const ADMIN_URL =
+  'https://quiz-app-admin-liart.vercel.app';
+
+// =====================================
 // CORS CONFIGURATION
 // =====================================
 
 const allowedOrigins = [
-  'https://quiz-app-admin-liart.vercel.app'
+  ADMIN_URL,
+
+  // Additional frontend URLs can be added
+  // when the User App URL is available.
+  ...(process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map(origin => origin.trim().replace(/\/+$/, ''))
+    .filter(Boolean)
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow server-to-server requests and health checks
     if (!origin) {
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
+    const normalizedOrigin = origin.replace(/\/+$/, '');
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
       return callback(null, true);
     }
 
-    console.error('CORS blocked origin:', origin);
+    console.error('Blocked CORS origin:', origin);
+
     return callback(new Error('Not allowed by CORS'));
   },
 
@@ -50,7 +69,7 @@ const corsOptions = {
   optionsSuccessStatus: 204
 };
 
-// Apply CORS before all routes
+// CORS must run before API routes
 app.use(cors(corsOptions));
 
 // =====================================
@@ -74,7 +93,7 @@ app.use((req, res, next) => {
 });
 
 // =====================================
-// ROOT API
+// ROOT ROUTE
 // =====================================
 
 app.get('/', (req, res) => {
@@ -83,6 +102,8 @@ app.get('/', (req, res) => {
   res.status(200).json({
     message: 'Quiz App API is running',
     version: '2.1',
+    backend: BACKEND_URL,
+    admin: ADMIN_URL,
     database: connected ? 'connected' : 'disconnected'
   });
 });
@@ -159,10 +180,14 @@ app.use((req, res) => {
 // =====================================
 
 app.use((err, req, res, next) => {
-  console.error('Unhandled API error:', err);
+  console.error('API Error:', err.message);
 
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal server error'
+  const isCorsError = err.message === 'Not allowed by CORS';
+
+  res.status(isCorsError ? 403 : (err.status || 500)).json({
+    message: isCorsError
+      ? 'Origin not allowed by CORS'
+      : (err.message || 'Internal server error')
   });
 });
 
@@ -183,11 +208,15 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => {
   console.log('MongoDB connected successfully');
 
+  console.log('Backend:', BACKEND_URL);
+  console.log('Admin:', ADMIN_URL);
+  console.log('Allowed Origins:', allowedOrigins);
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Quiz API listening on port ${PORT}`);
   });
 })
-.catch((err) => {
+.catch(err => {
   console.error('MongoDB connection failed:', err.message);
   process.exit(1);
 });
