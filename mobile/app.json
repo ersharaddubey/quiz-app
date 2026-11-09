@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Govt Exam Quiz",
+    "slug": "quiz-app",
+    "version": "2.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "sdkVersion": "58.0.0",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#060B18"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#060B18"
+      },
+      "usesCleartextTraffic": false,
+      "package": "com.promptwala.quizapp"
+    },
+    "plugins": [
+      "expo-status-bar"
+    ]
+  }
+}
