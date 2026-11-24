@@ -2,25 +2,15 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
-const path = require('path');
-const fs = require('fs');
 const auth = require('../middleware/auth');
 const Question = require('../models/Question');
 const Category = require('../models/Category');
 const Subject = require('../models/Subject');
 
-// Ensure uploads dir
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, `quiz-${Date.now()}${path.extname(file.originalname)}`),
-});
-
+// Memory storage use karo (Vercel compatible)
 const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 }, // 8MB (Vercel body limit ke liye safe)
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files allowed'));
@@ -29,35 +19,24 @@ const upload = multer({
 
 /**
  * Parse MCQ text from PDF content.
- * Supports common formats:
- * 1. Q1. Question text
- *    A) opt  B) opt  C) opt  D) opt
- *    Answer: B
- * 2. 1. Question
- *    (a) (b) (c) (d)
- *    Ans: (c)
  */
 function parseQuestionsFromText(text) {
   const questions = [];
-  // Normalize
   const cleaned = text
     .replace(/\r\n/g, '\n')
     .replace(/\t/g, ' ')
     .replace(/[ \t]+/g, ' ');
 
-  // Split by question numbers: Q1. / 1. / Question 1 /
   const blocks = cleaned.split(/(?=(?:Q\.?\s*\d+[\.\)\:]|Question\s*\d+[\.\)\:]|\n\d+[\.\)]\s+[A-Z]))/i);
 
   for (const block of blocks) {
     const b = block.trim();
     if (b.length < 20) continue;
 
-    // Extract question text (first line-ish before options)
     let questionText = '';
     let options = [];
     let correctAnswer = 0;
 
-    // Try pattern: question then A) B) C) D)
     const optPatterns = [
       /(?:^|\n)\s*([A-Da-d])[\.\)\]]\s*(.+?)(?=(?:\n\s*[A-Da-d][\.\)\]]|\n\s*(?:Answer|Ans|Correct)|$))/gis,
       /(?:^|\n)\s*\(([A-Da-d])\)\s*(.+?)(?=(?:\n\s*\([A-Da-d]\)|\n\s*(?:Answer|Ans|Correct)|$))/gis,
@@ -73,14 +52,12 @@ function parseQuestionsFromText(text) {
     }
 
     if (matchedOpts.length >= 2) {
-      // Question is text before first option
       const firstOptIdx = b.search(/(?:^|\n)\s*[A-Da-d][\.\)\]]|(?:^|\n)\s*\([A-Da-d]\)/i);
       questionText = (firstOptIdx > 0 ? b.slice(0, firstOptIdx) : b)
         .replace(/^(?:Q\.?\s*\d+[\.\)\:]|Question\s*\d+[\.\)\:]|\d+[\.\)])\s*/i, '')
         .replace(/\n+/g, ' ')
         .trim();
 
-      // Sort options by letter
       const optMap = {};
       for (const m of matchedOpts) {
         const letter = m[1].toUpperCase();
@@ -90,7 +67,6 @@ function parseQuestionsFromText(text) {
       const letters = ['A', 'B', 'C', 'D', 'E', 'F'].filter((l) => optMap[l]);
       options = letters.map((l) => optMap[l]);
 
-      // Answer
       const ansMatch = b.match(/(?:Answer|Ans|Correct(?:\s*Answer)?)\s*[:\-]?\s*[\(\[]?\s*([A-Da-d])/i);
       if (ansMatch) {
         const ansLetter = ansMatch[1].toUpperCase();
@@ -104,7 +80,7 @@ function parseQuestionsFromText(text) {
     }
   }
 
-  // Fallback: line-based simple parser
+  // Fallback parser
   if (questions.length === 0) {
     const lines = cleaned.split('\n').map((l) => l.trim()).filter(Boolean);
     let current = null;
@@ -150,23 +126,18 @@ router.post('/pdf', auth, upload.single('pdf'), async (req, res) => {
 
     const { category, subject, difficulty } = req.body;
     if (!category || !subject) {
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: 'Category and Subject are required' });
     }
 
     const cat = await Category.findById(category);
     const sub = await Subject.findById(subject);
     if (!cat || !sub) {
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: 'Invalid category or subject' });
     }
 
-    const dataBuffer = fs.readFileSync(req.file.path);
-    const pdfData = await pdfParse(dataBuffer);
+    // Memory se seedha parse karo
+    const pdfData = await pdfParse(req.file.buffer);
     const parsed = parseQuestionsFromText(pdfData.text || '');
-
-    // Cleanup file
-    try { fs.unlinkSync(req.file.path); } catch (_) {}
 
     if (parsed.length === 0) {
       return res.status(400).json({
@@ -196,9 +167,6 @@ router.post('/pdf', auth, upload.single('pdf'), async (req, res) => {
       questions: created,
     });
   } catch (err) {
-    if (req.file?.path) {
-      try { fs.unlinkSync(req.file.path); } catch (_) {}
-    }
     console.error('PDF upload error:', err);
     res.status(500).json({ message: err.message || 'PDF processing failed' });
   }
