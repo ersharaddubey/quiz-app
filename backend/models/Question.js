@@ -21,6 +21,7 @@ const questionSchema = new mongoose.Schema({
   examName: { type: String, default: '', index: true },
   examYear: { type: Number, default: null, index: true },
   paperName: { type: String, default: '' },
+  pyqSourceUrl: { type: String, default: '' },
   questionLanguage: { type: String, enum: ['hi', 'en', 'both', ''], default: '' },
   translation: { type: String, default: '' },
   isPreviousYearQuestion: { type: Boolean, default: false, index: true },
@@ -32,6 +33,13 @@ const questionSchema = new mongoose.Schema({
 questionSchema.index({ questionHash:  1 }, {
   unique: true,
   partialFilterExpression: { questionHash: { $type: 'string', $gt: '' } }
+});
+
+questionSchema.pre('validate', function(next) {
+  if (this.isPreviousYearQuestion && this.verified && !/^https?:\\/\\//i.test(this.pyqSourceUrl || '')) {
+    return next(new Error('A verified PYQ must include its original paper/source URL'));
+  }
+  next();
 });
 
 module.exports = mongoose.model('Question', questionSchema);
