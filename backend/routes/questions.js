@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
     if (subject) filter.subject = subject;
     if (syllabus) filter.syllabus = syllabus;
     if (difficulty) filter.difficulty = difficulty;
-    if (isPreviousYearQuestion === 'true') filter.isPreviousYearQuestion = true;
+    if (isPreviousYearQuestion === 'true') { filter.isPreviousYearQuestion = true; filter.verified = true; }
     if (examName) filter.examName = examName;
     if (examYear && Number.isInteger(Number(examYear))) filter.examYear = Number(examYear);
 
@@ -54,7 +54,7 @@ router.get('/:id', async (req, res) => {
 // Create question (Admin only)
 router.post('/', auth, async (req, res) => {
   try {
-    const { question, options, correctAnswer, category, subject, syllabus, difficulty, explanation, examName, examYear, paperName, questionLanguage, translation, isPreviousYearQuestion } = req.body;
+    const { question, options, correctAnswer, category, subject, syllabus, difficulty, explanation, examName, examYear, paperName, questionLanguage, translation, isPreviousYearQuestion, verified } = req.body;
 
     if (!question || !options || options.length < 2 || correctAnswer === undefined) {
       return res.status(400).json({ message: 'Please provide question, at least 2 options and correctAnswer index' });
@@ -95,7 +95,8 @@ router.post('/', auth, async (req, res) => {
       paperName: paperName || '',
       questionLanguage: questionLanguage || '',
       translation: translation || '',
-      isPreviousYearQuestion: Boolean(isPreviousYearQuestion)
+      isPreviousYearQuestion: Boolean(isPreviousYearQuestion),
+      verified: Boolean(verified)
     });
 
     const saved = await newQuestion.save();
