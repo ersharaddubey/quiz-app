@@ -204,6 +204,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.quickLinks}>
           <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('CurrentAffairs')}><Text style={styles.quickIcon}>📰</Text><Text style={styles.quickText}>Current Affairs</Text></TouchableOpacity>
           <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('MockTests')}><Text style={styles.quickIcon}>⏱️</Text><Text style={styles.quickText}>Mock Tests</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('PYQBank')}><Text style={styles.quickIcon}>📚</Text><Text style={styles.quickText}>PYQ Bank</Text></TouchableOpacity>
           <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('JobAlerts')}><Text style={styles.quickIcon}>🔔</Text><Text style={styles.quickText}>Job Alerts</Text></TouchableOpacity>
         </View>
 
