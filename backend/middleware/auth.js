@@ -10,6 +10,8 @@ const auth = (req, res, next) => {
   try {
     const secret = process.env.JWT_SECRET || 'quiz-app-dev-secret-change-in-production';
     const decoded = jwt.verify(token, secret);
+    // Student sessions must never authorize admin endpoints.
+    if (decoded.role === 'student') return res.status(403).json({ message: 'Admin access required' });
     req.admin = decoded;
     next();
   } catch (err) {
