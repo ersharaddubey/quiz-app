@@ -4,6 +4,9 @@ const Question = require('../models/Question');
 const MockTestAttempt = require('../models/MockTestAttempt');
 const MockTestSession = require('../models/MockTestSession');
 
+const studentAuth = require('../middleware/studentAuth');
+const router = express.Router();
+
 router.post('/sessions/start', studentAuth, async (req, res) => {
   try {
     const test = await MockTest.findOne({ _id: req.body.testId, isPublished: true });
@@ -16,41 +19,7 @@ router.post('/sessions/start', studentAuth, async (req, res) => {
     res.status(201).json({ sessionId: session._id, startedAt: session.startedAt, expiresAt: session.expiresAt, durationMinutes: test.durationMinutes });
   } catch (error) { res.status(400).json({ message: error.message }); }
 });
-const studentAuth = require('../middleware/studentAuth');
-const router = express.Router();
 
-router.post('/attempts', studentAuth, async (req, res) => {
-  try {
-    const { testId, answers = {} } = req.body;
-    const test = await MockTest.findOne({ _id: testId, isPublished: true });
-    if (!test) return res.status(404).json({ message: 'Mock test not found' });
-    if (!answers || typeof answers !== 'object' || Array.isArray(answers)) return res.status(400).json({ message: 'Answers must be an object' });
-    const questions = await Question.find({ _id: { $in: test.questions } }).select('correctAnswer options');
-    const byId = new Map(questions.map(q => [String(q._id), q]));
-    let correct = 0, wrong = 0, unanswered = 0;
-    const wrongQuestionIds = [];
-    const normalizedAnswers = {};
-    for (const id of test.questions.map(String)) {
-      const q = byId.get(id);
-      const value = answers[id];
-      if (!q || value === undefined || value === null || value === '') { unanswered++; continue; }
-      const selected = Number(value);
-      if (!Number.isInteger(selected) || selected < 0 || selected >= q.options.length) { unanswered++; continue; }
-      normalizedAnswers[id] = selected;
-      if (selected === q.correctAnswer) correct++;
-      else { wrong++; wrongQuestionIds.push(id); }
-    }
-    const score = Math.round((correct * test.marksPerQuestion - wrong * test.negativeMarksPerWrong) * 100) / 100;
-    const maxMarks = test.questions.length * test.marksPerQuestion;
-    const attempted = correct + wrong;
-    const accuracy = attempted ? Math.round(correct / attempted * 10000) / 100 : 0;
-    const attempt = await MockTestAttempt.create({
-      student: req.student._id, test: test._id, answers: normalizedAnswers,
-      correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds
-    });
-    res.status(201).json({ attemptId: attempt._id, total: test.questions.length, correct, wrong, unanswered, score, maxMarks, accuracy });
-  } catch (error) { res.status(400).json({ message: error.message }); }
-});
 
 router.get('/analytics', studentAuth, async (req, res) => {
   try {
