@@ -49,7 +49,10 @@ function Dashboard({ onLogout }) {
         API.get('/categories?all=true'),
         API.get('/subjects?all=true'),
         API.get('/syllabus?all=true'),
-        API.get('/banners?all=true')
+        API.get('/banners?all=true'),
+        API.get('/current-affairs/admin/all'),
+        API.get('/job-alerts/admin/all'),
+        API.get('/mock-tests/admin/all')
       ]);
       setQuestions(qRes.data);
       setCategories(cRes.data);
