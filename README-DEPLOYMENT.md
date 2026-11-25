@@ -73,3 +73,40 @@ If AI settings are omitted, the GitHub dataset importer still runs. No paid/free
 6. Check the workflow log and `GET /api/automation/history` before relying on the six-hour schedule.
 
 GitHub scheduled workflows run in UTC and may be delayed during high load. The schedule is `17 */6 * * *` (00:17, 06:17, 12:17, 18:17 UTC).
+
+## Automatic question imports (6-hour schedule)
+
+Set these environment variables on the backend deployment (Production):
+
+```env
+QUESTION_IMPORT_SECRET=<unique random value; generate with openssl rand -hex 32>
+QUESTION_API_URLS=https://opentdb.com/api.php?amount=50&type=multiple&encode=url3986
+QUESTION_DEFAULT_CATEGORY=SSC
+QUESTION_AI_API_URL=https://api.groq.com/openai/v1/chat/completions
+QUESTION_AI_API_KEY=<your own Groq API key>
+QUESTION_AI_MODEL=openai/gpt-oss-20b
+QUESTION_AI_BATCH_SIZE=25
+```
+
+The Open Trivia DB adapter handles its `results[]`, `correct_answer`, and
+`incorrect_answers` fields, decodes URL-encoded text, shuffles options, and
+maps its broad trivia categories to existing subjects. Since Open Trivia DB
+is general trivia rather than Indian exam PYQs, those questions are assigned
+to the configured `QUESTION_DEFAULT_CATEGORY` (default `SSC`) and mapped to
+an existing subject such as General Knowledge, History, Geography, Polity,
+Computer Awareness, Quantitative Aptitude, or General Science.
+
+The AI importer reads the active category and subject names from MongoDB and
+includes those exact pairs in its prompt. It skips any response whose category
+or subject does not match an active record. AI-created and imported questions
+are structurally validated and inserted automatically, but are marked
+`verified: false`; structural checks cannot independently prove factual
+correctness. Do not label generated/imported questions as official PYQs.
+
+`QUESTION_SOURCE_URLS` is optional. Only add a comma-separated raw JSON URL
+when the dataset is compatible with this importer and its licence permits
+commercial redistribution/use. No fabricated dataset URL is required.
+
+Add the same `QUESTION_IMPORT_SECRET` value to GitHub Actions repository
+secrets, plus `BACKEND_URL` set to the deployed backend base URL. The workflow
+runs every six hours and can also be started manually from the Actions tab.
