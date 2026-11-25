@@ -117,3 +117,21 @@ The feature branch `feature/government-exam-modules` adds backend foundations fo
 - Job alerts should use the recruiting body's official notification URL and should be rechecked before publishing.
 - A PYQ must be labelled as such only when its exam/year/paper provenance has been checked. Generic trivia or AI-generated questions must not be labelled PYQ.
 - Current-affairs and job-alert records are not auto-populated with invented content; the admin endpoints are ready for verified editorial content.
+
+
+### Mobile screens and admin management
+- Mobile Home shortcuts now open Current Affairs, PYQ Bank, Mock Tests and Government Job Alerts.
+- Current Affairs screen supports Hindi/English filters and displays published source metadata.
+- PYQ Bank filters by exam name and year. It returns only questions marked both as previous-year questions and verified.
+- Mock Test flow includes a countdown, question navigation, submit and server-side score calculation with negative marking.
+- Job Alerts display official notification, application end date, admit-card and result links when supplied.
+- Admin Dashboard has management tabs for Current Affairs, Job Alerts and Mock Tests. These module forms accept a complete JSON record (Edit JSON); keep new records in draft until checked, then set `status: "published"` or `isPublished: true`.
+
+### PYQ verification
+When creating or editing a question in Admin, fill Exam name, Exam year and Paper/shift, check "Actual previous-year question", and check "I verified this question against the original paper/source" only after checking the original paper. Generic/AI-generated practice questions must not be labelled PYQ.
+
+### Important implementation limits
+- Current Affairs and Job Alerts are editorial CMS modules; no unverified external feed is auto-published. Admin must enter and verify source-backed records.
+- Mock-test countdown is currently enforced in the mobile client; server-side attempt/session expiry and student-account result history are not yet implemented.
+- Per-student leaderboard, cloud progress analytics, study planner/reminders and an AI tutor require a student identity/profile system and/or a configured AI provider. They are not included in this first feature branch.
+- Hindi/English selection is implemented for Current Affairs; app-wide translated UI and paired translations for all questions are not yet implemented.
