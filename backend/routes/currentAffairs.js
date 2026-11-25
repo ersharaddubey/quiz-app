@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
       if (req.query.to) filter.sourceDate.$lte = new Date(req.query.to);
     }
     const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
-    const items = await CurrentAffair.find(filter).sort({ sourceDate: -1 }).limit(limit).lean();
+    const items = await CurrentAffair.find(filter).select('-correctAnswer -explanation').sort({ sourceDate: -1 }).limit(limit).lean();
     res.json(items);
   } catch (error) { res.status(500).json({ message: error.message }); }
 });
