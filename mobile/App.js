@@ -11,6 +11,7 @@ import JobAlertsScreen from './src/screens/JobAlertsScreen';
 import MockTestsScreen from './src/screens/MockTestsScreen';
 import MockTestAttemptScreen from './src/screens/MockTestAttemptScreen';
 import PYQBankScreen from './src/screens/PYQBankScreen';
+import StudentHubScreen from './src/screens/StudentHubScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,7 @@ export default function App() {
           <Stack.Screen name="PYQBank" component={PYQBankScreen} />
           <Stack.Screen name="MockTests" component={MockTestsScreen} />
           <Stack.Screen name="MockTestAttempt" component={MockTestAttemptScreen} />
+          <Stack.Screen name="StudentHub" component={StudentHubScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
