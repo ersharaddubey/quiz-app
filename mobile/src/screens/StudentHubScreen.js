@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
-import API from '../services/api';
+import API, { setStudentToken } from '../services/api';
 
 export default function StudentHubScreen() {
   const [mode, setMode] = useState('login');
@@ -21,7 +21,7 @@ export default function StudentHubScreen() {
       const payload = mode === 'register' ? { name, email, password } : { email, password };
       const result = await API.post(path, payload);
       const t = result.data.token;
-      setToken(t);
+      setToken(t); setStudentToken(t);
       const headers = { Authorization: 'Bearer ' + t };
       const [a, l, r] = await Promise.all([
         API.get('/student-learning/analytics', { headers }),
