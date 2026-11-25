@@ -11,13 +11,15 @@ const jobAlertSchema = new mongoose.Schema({
   examDate: { type: Date, default: null },
   admitCardUrl: { type: String, default: '' },
   resultUrl: { type: String, default: '' },
-  officialUrl: { type: String, required: true, match: /^https?:\\/\\//i },
+  officialUrl: { type: String, required: true },
   sourceVerifiedAt: { type: Date, default: null },
   status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft', index: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 jobAlertSchema.pre('save', function(next) {
+  const officialUrl = String(this.officialUrl || '');
+  if (!(officialUrl.startsWith('https://') || officialUrl.startsWith('http://'))) return next(new Error('officialUrl must be an HTTP(S) URL'));
   if (this.status === 'published' && !this.sourceVerifiedAt) return next(new Error('Verify the official notification and set sourceVerifiedAt before publishing'));
   if (this.applicationStart && this.applicationEnd && this.applicationEnd < this.applicationStart) {
     return next(new Error('applicationEnd cannot be before applicationStart'));
