@@ -36,7 +36,8 @@ questionSchema.index({ questionHash:  1 }, {
 });
 
 questionSchema.pre('validate', function(next) {
-  if (this.isPreviousYearQuestion && this.verified && !/^https?:\\/\\//i.test(this.pyqSourceUrl || '')) {
+  const sourceUrl = String(this.pyqSourceUrl || '');
+  if (this.isPreviousYearQuestion && this.verified && !(sourceUrl.startsWith('https://') || sourceUrl.startsWith('http://'))) {
     return next(new Error('A verified PYQ must include its original paper/source URL'));
   }
   next();
