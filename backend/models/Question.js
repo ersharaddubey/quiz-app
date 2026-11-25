@@ -17,6 +17,14 @@ const questionSchema = new mongoose.Schema({
   questionHash: { type: String, default: '' },
   autoValidated: { type: Boolean, default: false },
   verified: { type: Boolean, default: false },
+  // Optional exam provenance; legacy question documents remain valid.
+  examName: { type: String, default: '', index: true },
+  examYear: { type: Number, default: null, index: true },
+  paperName: { type: String, default: '' },
+  pyqSourceUrl: { type: String, default: '' },
+  questionLanguage: { type: String, enum: ['hi', 'en', 'both', ''], default: '' },
+  translation: { type: String, default: '' },
+  isPreviousYearQuestion: { type: Boolean, default: false, index: true },
   importedAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
@@ -25,6 +33,14 @@ const questionSchema = new mongoose.Schema({
 questionSchema.index({ questionHash:  1 }, {
   unique: true,
   partialFilterExpression: { questionHash: { $type: 'string', $gt: '' } }
+});
+
+questionSchema.pre('validate', function(next) {
+  const sourceUrl = String(this.pyqSourceUrl || '');
+  if (this.isPreviousYearQuestion && this.verified && !(sourceUrl.startsWith('https://') || sourceUrl.startsWith('http://'))) {
+    return next(new Error('A verified PYQ must include its original paper/source URL'));
+  }
+  next();
 });
 
 module.exports = mongoose.model('Question', questionSchema);

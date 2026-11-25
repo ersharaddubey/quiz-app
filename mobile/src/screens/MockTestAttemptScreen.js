@@ -1,0 +1,22 @@
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import API from '../services/api';
+
+export default function MockTestAttemptScreen({route,navigation}) {
+  const {testId,title}=route.params;
+  const [test,setTest]=useState(null); const [index,setIndex]=useState(0); const [answers,setAnswers]=useState({});
+  const [seconds,setSeconds]=useState(0); const [loading,setLoading]=useState(true); const [submitting,setSubmitting]=useState(false); const [result,setResult]=useState(null);
+  useEffect(()=>{API.get('/mock-tests/'+testId).then(r=>{setTest(r.data);setSeconds((r.data.durationMinutes||60)*60);}).catch(e=>Alert.alert('Unable to load test',e.response?.data?.message||'Please try again')).finally(()=>setLoading(false));},[testId]);
+  const submit=useCallback(async()=>{if(!test||submitting||result)return;setSubmitting(true);try{const r=await API.post('/mock-tests/'+testId+'/submit',{answers});setResult(r.data);}catch(e){Alert.alert('Submit failed',e.response?.data?.message||'Please retry');}finally{setSubmitting(false);}},[test,testId,answers,submitting,result]);
+  useEffect(()=>{if(!test||result||submitting)return;const timer=setInterval(()=>setSeconds(v=>{if(v<=1){clearInterval(timer);submit();return 0;}return v-1;}),1000);return()=>clearInterval(timer);},[test,result,submitting,submit]);
+  if(loading)return <View style={s.center}><ActivityIndicator color="#00E5FF"/></View>;
+  if(!test)return <View style={s.center}><Text style={s.text}>Test unavailable</Text></View>;
+  if(result)return <View style={s.page}><Text style={s.title}>Mock Test Result</Text><Text style={s.score}>{result.score} / {result.maxMarks}</Text><Text style={s.text}>Correct: {result.correct} · Wrong: {result.wrong} · Unanswered: {result.unanswered}</Text><TouchableOpacity style={s.button} onPress={()=>navigation.popToTop()}><Text style={s.buttonText}>Back to Home</Text></TouchableOpacity></View>;
+  const q=test.questions[index]; const fmt=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+  return <View style={s.page}><Text style={s.title}>{title||test.title}</Text><View style={s.row}><Text style={s.meta}>Question {index+1}/{test.questions.length}</Text><Text style={s.timer}>{fmt(seconds)}</Text></View>
+    <ScrollView><View style={s.card}><Text style={s.question}>{q.question}</Text>{q.options.map((o,i)=><TouchableOpacity key={i} onPress={()=>setAnswers(p=>({...p,[q._id]:i}))} style={[s.option,answers[q._id]===i&&s.selected]}><Text style={s.text}>{String.fromCharCode(65+i)}. {o}</Text></TouchableOpacity>)}</View>
+    <View style={s.row}><TouchableOpacity disabled={index===0} style={s.nav} onPress={()=>setIndex(v=>v-1)}><Text style={s.text}>Previous</Text></TouchableOpacity><TouchableOpacity style={s.nav} onPress={()=>index+1<test.questions.length?setIndex(v=>v+1):submit()}><Text style={s.text}>{index+1===test.questions.length?'Submit':'Next'}</Text></TouchableOpacity></View>
+    <TouchableOpacity style={s.submit} onPress={()=>Alert.alert('Submit mock test?','Your answers will be evaluated.',[{text:'Continue test',style:'cancel'},{text:'Submit',onPress:submit}])}><Text style={s.buttonText}>{submitting?'Submitting…':'Finish Test'}</Text></TouchableOpacity></ScrollView>
+  </View>;
+}
+const s=StyleSheet.create({page:{flex:1,backgroundColor:'#060B18',padding:18,paddingTop:48},center:{flex:1,backgroundColor:'#060B18',alignItems:'center',justifyContent:'center'},title:{color:'#F0F7FF',fontSize:21,fontWeight:'800',marginBottom:16},row:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:14},meta:{color:'#8BA3C7'},timer:{color:'#F87171',fontWeight:'800',fontSize:18},card:{backgroundColor:'#121C37',borderColor:'#23445A',borderWidth:1,borderRadius:14,padding:16},question:{color:'#F0F7FF',fontSize:17,fontWeight:'700',marginBottom:16,lineHeight:24},option:{padding:13,borderWidth:1,borderColor:'#345',borderRadius:10,marginBottom:9},selected:{borderColor:'#00E5FF',backgroundColor:'#103044'},text:{color:'#F0F7FF'},nav:{padding:12,borderRadius:10,borderWidth:1,borderColor:'#00E5FF',marginTop:14},submit:{backgroundColor:'#00D8F0',padding:14,borderRadius:10,alignItems:'center',marginTop:14},buttonText:{color:'#06101E',fontWeight:'800'},score:{color:'#00E5FF',fontSize:40,fontWeight:'900',marginBottom:12}});

@@ -167,6 +167,11 @@ app.use('/api/upload', require('./routes/upload'));
 // Scheduled question imports (GitHub Actions -> secured backend endpoint)
 app.use('/api/automation', require('./routes/automation'));
 
+// Government exam learning modules
+app.use('/api/current-affairs', require('./routes/currentAffairs'));
+app.use('/api/job-alerts', require('./routes/jobAlerts'));
+app.use('/api/mock-tests', require('./routes/mockTests'));
+
 // =====================================
 // 404 HANDLER
 // =====================================

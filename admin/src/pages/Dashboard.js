@@ -9,6 +9,9 @@ function Dashboard({ onLogout }) {
   const [syllabusList, setSyllabusList] = useState([]);
   const [banners, setBanners] = useState([]);
   const [importRuns, setImportRuns] = useState([]);
+  const [currentAffairs, setCurrentAffairs] = useState([]);
+  const [jobAlerts, setJobAlerts] = useState([]);
+  const [mockTests, setMockTests] = useState([]);
   const [importBusy, setImportBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -26,7 +29,8 @@ function Dashboard({ onLogout }) {
     subject: '',
     syllabus: '',
     difficulty: 'Medium',
-    explanation: ''
+    explanation: '',
+    examName: '', examYear: '', paperName: '', pyqSourceUrl: '', isPreviousYearQuestion: false, verified: false
   });
   const [catForm, setCatForm] = useState({ name: '', description: '', icon: '📚', order: 0 });
   const [subForm, setSubForm] = useState({ name: '', category: '', description: '', icon: '📖', order: 0 });
@@ -40,18 +44,24 @@ function Dashboard({ onLogout }) {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [qRes, cRes, sRes, syRes, bRes] = await Promise.all([
+      const [qRes, cRes, sRes, syRes, bRes, caRes, jaRes, mtRes] = await Promise.all([
         API.get('/questions'),
         API.get('/categories?all=true'),
         API.get('/subjects?all=true'),
         API.get('/syllabus?all=true'),
-        API.get('/banners?all=true')
+        API.get('/banners?all=true'),
+        API.get('/current-affairs/admin/all'),
+        API.get('/job-alerts/admin/all'),
+        API.get('/mock-tests/admin/all')
       ]);
       setQuestions(qRes.data);
       setCategories(cRes.data);
       setSubjects(sRes.data);
       setSyllabusList(syRes.data);
       setBanners(bRes.data);
+      setCurrentAffairs(caRes.data || []);
+      setJobAlerts(jaRes.data || []);
+      setMockTests(mtRes.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -102,6 +112,31 @@ function Dashboard({ onLogout }) {
       setSuccess('');
       setError('');
     }, 3000);
+  };
+
+  const manageModuleRecord = async (resource, item = null) => {
+    const defaults = {
+      'current-affairs': { title: 'Headline', question: 'Question text', options: ['Option A','Option B','Option C','Option D'], correctAnswer: 0, sourceDate: new Date().toISOString(), language: 'en', topic: 'General', sourceName: '', sourceUrl: '', status: 'draft' },
+      'job-alerts': { title: 'Recruitment title', organization: 'Recruiting body', officialUrl: 'https://', applicationStart: null, applicationEnd: null, vacancies: null, status: 'draft' },
+      'mock-tests': { title: 'Mock test title', category: categories[0]?._id || '', questions: [], durationMinutes: 60, marksPerQuestion: 1, negativeMarksPerWrong: 0, isPublished: false }
+    };
+    const raw = window.prompt('Enter complete JSON record. Required fields are shown in the example.', JSON.stringify(item || defaults[resource], null, 2));
+    if (raw === null) return;
+    try {
+      const payload = JSON.parse(raw);
+      if (item?._id) await API.put(`/${resource}/${item._id}`, payload);
+      else await API.post(`/${resource}`, payload);
+      showMsg('Record saved successfully.');
+      await fetchAll();
+    } catch (err) {
+      showMsg(err.response?.data?.message || (err instanceof SyntaxError ? 'Invalid JSON' : 'Save failed'), true);
+    }
+  };
+
+  const deleteModuleRecord = async (resource, item) => {
+    if (!window.confirm('Delete this record?')) return;
+    try { await API.delete(`/${resource}/${item._id}`); showMsg('Record deleted.'); await fetchAll(); }
+    catch (err) { showMsg(err.response?.data?.message || 'Delete failed', true); }
   };
 
   // ---- Category handlers ----
@@ -283,7 +318,9 @@ function Dashboard({ onLogout }) {
         subject: item.subject?._id || item.subject || '',
         syllabus: item.syllabus?._id || item.syllabus || '',
         difficulty: item.difficulty || 'Medium',
-        explanation: item.explanation || ''
+        explanation: item.explanation || '',
+        examName: item.examName || '', examYear: item.examYear || '', paperName: item.paperName || '', pyqSourceUrl: item.pyqSourceUrl || '',
+        isPreviousYearQuestion: Boolean(item.isPreviousYearQuestion), verified: Boolean(item.verified)
       });
     } else {
       setQForm({
@@ -294,7 +331,8 @@ function Dashboard({ onLogout }) {
         subject: '',
         syllabus: '',
         difficulty: 'Medium',
-        explanation: ''
+        explanation: '',
+        examName: '', examYear: '', paperName: '', pyqSourceUrl: '', isPreviousYearQuestion: false, verified: false
       });
     }
     setShowModal(true);
@@ -337,7 +375,13 @@ function Dashboard({ onLogout }) {
       ...qForm,
       options: filledOptions,
       correctAnswer: Math.min(qForm.correctAnswer, filledOptions.length - 1),
-      syllabus: qForm.syllabus || undefined
+      syllabus: qForm.syllabus || undefined,
+      examName: qForm.examName,
+      examYear: qForm.examYear ? Number(qForm.examYear) : null,
+      paperName: qForm.paperName,
+      pyqSourceUrl: qForm.pyqSourceUrl,
+      isPreviousYearQuestion: qForm.isPreviousYearQuestion,
+      verified: qForm.verified
     };
     try {
       if (editing) {
@@ -456,7 +500,10 @@ function Dashboard({ onLogout }) {
             { id: 'subjects', label: 'Subjects' },
             { id: 'syllabus', label: 'Syllabus' },
             { id: 'banners', label: 'Banners / Slider' },
-            { id: 'automation', label: '🤖 Auto Questions' }
+            { id: 'automation', label: '🤖 Auto Questions' },
+            { id: 'current-affairs', label: '📰 Current Affairs' },
+            { id: 'job-alerts', label: '🔔 Job Alerts' },
+            { id: 'mock-tests', label: '⏱️ Mock Tests' }
           ].map(t => (
             <button
               key={t.id}
@@ -548,6 +595,28 @@ function Dashboard({ onLogout }) {
                 {importRuns.some(run => run.errors?.length) && <details><summary>Latest import errors</summary><ul>{(importRuns.find(run => run.errors?.length)?.errors || []).map((error, index) => <li key={index}>{error}</li>)}</ul></details>}
               </div>
             )}
+          </div>
+        )}
+
+        {tab === 'current-affairs' && (
+          <div className="card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}><h2>Current Affairs ({currentAffairs.length})</h2><button className="btn btn-primary" onClick={()=>manageModuleRecord('current-affairs')}>+ Add Current Affair</button></div>
+            <p>Use source-checked facts, exact publication date and answer key. New records should remain draft until reviewed.</p>
+            {currentAffairs.map(item=><div key={item._id} style={{borderTop:'1px solid #ddd',padding:'12px 0'}}><strong>{item.title}</strong> · {item.language} · {item.status}<div>{item.question}</div><button className="btn btn-outline" onClick={()=>manageModuleRecord('current-affairs',item)}>Edit JSON</button> <button className="btn btn-danger" onClick={()=>deleteModuleRecord('current-affairs',item)}>Delete</button></div>)}
+          </div>
+        )}
+        {tab === 'job-alerts' && (
+          <div className="card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}><h2>Government Job Alerts ({jobAlerts.length})</h2><button className="btn btn-primary" onClick={()=>manageModuleRecord('job-alerts')}>+ Add Job Alert</button></div>
+            <p>Publish only after checking the recruiting body's official notification and last date.</p>
+            {jobAlerts.map(item=><div key={item._id} style={{borderTop:'1px solid #ddd',padding:'12px 0'}}><strong>{item.title}</strong> · {item.organization} · {item.status}<div>{item.officialUrl}</div><button className="btn btn-outline" onClick={()=>manageModuleRecord('job-alerts',item)}>Edit JSON</button> <button className="btn btn-danger" onClick={()=>deleteModuleRecord('job-alerts',item)}>Delete</button></div>)}
+          </div>
+        )}
+        {tab === 'mock-tests' && (
+          <div className="card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}><h2>Mock Tests ({mockTests.length})</h2><button className="btn btn-primary" onClick={()=>manageModuleRecord('mock-tests')}>+ Add Mock Test</button></div>
+            <p>Question IDs must refer to existing questions. Publish only after checking test duration, marks and negative marking.</p>
+            {mockTests.map(item=><div key={item._id} style={{borderTop:'1px solid #ddd',padding:'12px 0'}}><strong>{item.title}</strong> · {item.isPublished?'Published':'Draft'} · {item.questions?.length||0} questions<div>{item.durationMinutes} min · +{item.marksPerQuestion} / -{item.negativeMarksPerWrong}</div><button className="btn btn-outline" onClick={()=>manageModuleRecord('mock-tests',item)}>Edit JSON</button> <button className="btn btn-danger" onClick={()=>deleteModuleRecord('mock-tests',item)}>Delete</button></div>)}
           </div>
         )}
 
@@ -928,6 +997,15 @@ function Dashboard({ onLogout }) {
                     <option>Medium</option>
                     <option>Hard</option>
                   </select>
+                </div>
+                <div className="form-group">
+                  <label>Previous Year Question metadata (optional)</label>
+                  <input value={qForm.examName} onChange={e => setQForm({ ...qForm, examName: e.target.value })} placeholder="Exam e.g. SSC CGL" />
+                  <input type="number" value={qForm.examYear} onChange={e => setQForm({ ...qForm, examYear: e.target.value })} placeholder="Exam year e.g. 2024" style={{ marginTop: 8 }} />
+                  <input value={qForm.paperName} onChange={e => setQForm({ ...qForm, paperName: e.target.value })} placeholder="Paper / shift (optional)" style={{ marginTop: 8 }} />
+                  <input value={qForm.pyqSourceUrl} onChange={e => setQForm({ ...qForm, pyqSourceUrl: e.target.value })} placeholder="Original paper/source URL (required for verified PYQ)" style={{ marginTop: 8 }} />
+                  <label style={{ display: 'block', marginTop: 10 }}><input type="checkbox" checked={qForm.isPreviousYearQuestion} onChange={e => setQForm({ ...qForm, isPreviousYearQuestion: e.target.checked })} /> Actual previous-year question</label>
+                  <label style={{ display: 'block', marginTop: 6 }}><input type="checkbox" checked={qForm.verified} onChange={e => setQForm({ ...qForm, verified: e.target.checked })} /> I verified this question against the original paper/source</label>
                 </div>
                 <div className="form-group">
                   <label>Explanation (optional)</label>

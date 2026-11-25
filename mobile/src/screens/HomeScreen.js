@@ -201,6 +201,13 @@ export default function HomeScreen({ navigation }) {
           )}
         </View>
 
+        <View style={styles.quickLinks}>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('CurrentAffairs')}><Text style={styles.quickIcon}>📰</Text><Text style={styles.quickText}>Current Affairs</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('MockTests')}><Text style={styles.quickIcon}>⏱️</Text><Text style={styles.quickText}>Mock Tests</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('PYQBank')}><Text style={styles.quickIcon}>📚</Text><Text style={styles.quickText}>PYQ Bank</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('JobAlerts')}><Text style={styles.quickIcon}>🔔</Text><Text style={styles.quickText}>Job Alerts</Text></TouchableOpacity>
+        </View>
+
         <View style={styles.sliderWrap}>
           <FlatList
             ref={bannerRef}
@@ -340,6 +347,10 @@ const styles = StyleSheet.create({
   },
   noteText: { color: '#F9A8D4', fontSize: 12, lineHeight: 17 },
 
+  quickLinks: { flexDirection: 'row', paddingHorizontal: 24, marginTop: 20, gap: 8 },
+  quickCard: { flex: 1, minHeight: 84, padding: 9, borderRadius: 14, borderWidth: 1, borderColor: C.borderSoft, backgroundColor: C.glass, alignItems: 'center', justifyContent: 'center' },
+  quickIcon: { fontSize: 21, marginBottom: 6 },
+  quickText: { color: C.text, fontSize: 10, fontWeight: '700', textAlign: 'center' },
   sliderWrap: { marginTop: 22 },
   slide: {
     width: SLIDE_W,

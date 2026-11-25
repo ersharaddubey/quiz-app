@@ -1,0 +1,56 @@
+name: Government Exam Modules CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/government-exam-modules]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Check backend JavaScript syntax
+        run: |
+          find . -path './node_modules' -prune -o -name '*.js' -type f -print0 | xargs -0 -n1 node --check
+        working-directory: backend
+
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+        working-directory: admin
+      - run: npm run build
+        working-directory: admin
+        env:
+          CI: true
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+        working-directory: mobile
+      - name: Bundle Android app
+        run: npx expo export --platform android
+        working-directory: mobile
+        env:
+          CI: true
+          EXPO_PUBLIC_API_URL: https://example.invalid/api

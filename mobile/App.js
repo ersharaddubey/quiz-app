@@ -6,6 +6,11 @@ import { StatusBar } from 'expo-status-bar';
 import HomeScreen from './src/screens/HomeScreen';
 import QuizScreen from './src/screens/QuizScreen';
 import ResultScreen from './src/screens/ResultScreen';
+import CurrentAffairsScreen from './src/screens/CurrentAffairsScreen';
+import JobAlertsScreen from './src/screens/JobAlertsScreen';
+import MockTestsScreen from './src/screens/MockTestsScreen';
+import MockTestAttemptScreen from './src/screens/MockTestAttemptScreen';
+import PYQBankScreen from './src/screens/PYQBankScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +29,11 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Quiz" component={QuizScreen} />
           <Stack.Screen name="Result" component={ResultScreen} />
+          <Stack.Screen name="CurrentAffairs" component={CurrentAffairsScreen} />
+          <Stack.Screen name="JobAlerts" component={JobAlertsScreen} />
+          <Stack.Screen name="PYQBank" component={PYQBankScreen} />
+          <Stack.Screen name="MockTests" component={MockTestsScreen} />
+          <Stack.Screen name="MockTestAttempt" component={MockTestAttemptScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
