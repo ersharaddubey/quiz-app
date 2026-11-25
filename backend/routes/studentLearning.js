@@ -2,6 +2,20 @@ const express = require('express');
 const MockTest = require('../models/MockTest');
 const Question = require('../models/Question');
 const MockTestAttempt = require('../models/MockTestAttempt');
+const MockTestSession = require('../models/MockTestSession');
+
+router.post('/sessions/start', studentAuth, async (req, res) => {
+  try {
+    const test = await MockTest.findOne({ _id: req.body.testId, isPublished: true });
+    if (!test) return res.status(404).json({ message: 'Mock test not found' });
+    const active = await MockTestSession.findOne({ student: req.student._id, test: test._id, status: 'active' });
+    if (active && active.expiresAt > new Date()) return res.status(409).json({ message: 'An attempt for this test is already active', sessionId: active._id, expiresAt: active.expiresAt });
+    if (active) { active.status = 'expired'; await active.save(); }
+    const startedAt = new Date();
+    const session = await MockTestSession.create({ student: req.student._id, test: test._id, startedAt, expiresAt: new Date(startedAt.getTime() + test.durationMinutes * 60000) });
+    res.status(201).json({ sessionId: session._id, startedAt: session.startedAt, expiresAt: session.expiresAt, durationMinutes: test.durationMinutes });
+  } catch (error) { res.status(400).json({ message: error.message }); }
+});
 const studentAuth = require('../middleware/studentAuth');
 const router = express.Router();
 
