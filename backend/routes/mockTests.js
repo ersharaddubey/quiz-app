@@ -3,6 +3,9 @@ const router = express.Router();
 const MockTest = require('../models/MockTest');
 const Question = require('../models/Question');
 const auth = require('../middleware/auth');
+const studentAuth = require('../middleware/studentAuth');
+const MockTestAttempt = require('../models/MockTestAttempt');
+const MockTestSession = require('../models/MockTestSession');
 
 function safeQuestion(question) {
   const item = question.toObject ? question.toObject() : question;
@@ -34,29 +37,43 @@ router.get('/:id', async (req, res) => {
   } catch (error) { res.status(400).json({ message: error.message }); }
 });
 
-router.post('/:id/submit', async (req, res) => {
+router.post('/:id/submit', studentAuth, async (req, res) => {
   try {
     const test = await MockTest.findOne({ _id: req.params.id, isPublished: true });
     if (!test) return res.status(404).json({ message: 'Mock test not found' });
-    const submitted = req.body.answers || {};
-    const questions = await Question.find({ _id: { $in: test.questions } }).select('correctAnswer options question');
+    const { sessionId, answers = {} } = req.body;
+    if (!sessionId || !answers || typeof answers !== 'object' || Array.isArray(answers)) return res.status(400).json({ message: 'A valid session and answers object are required' });
+    const session = await MockTestSession.findOne({ _id: sessionId, test: test._id, student: req.student._id, status: 'active' });
+    if (!session) return res.status(409).json({ message: 'Mock test session is invalid, expired or already submitted. Start a new attempt.' });
+    const now = new Date();
+    if (now > session.expiresAt) {
+      session.status = 'expired'; await session.save();
+      return res.status(410).json({ message: 'Time is over. This mock test session has expired.' });
+    }
+    const questions = await Question.find({ _id: { $in: test.questions } }).select('correctAnswer options');
     const byId = new Map(questions.map(q => [String(q._id), q]));
     let correct = 0, wrong = 0, unanswered = 0;
-    const review = test.questions.map(id => {
-      const q = byId.get(String(id));
-      const value = submitted[String(id)];
-      if (!q || value === undefined || value === null || value === '') { unanswered++; return { questionId: String(id), status: 'unanswered' }; }
+    const wrongQuestionIds = [];
+    const normalizedAnswers = {};
+    for (const id of test.questions.map(String)) {
+      const q = byId.get(id);
+      const value = answers[id];
+      if (!q || value === undefined || value === null || value === '') { unanswered++; continue; }
       const selected = Number(value);
-      if (!Number.isInteger(selected) || selected < 0 || selected >= q.options.length) { unanswered++; return { questionId: String(id), status: 'unanswered' }; }
-      const isCorrect = selected === q.correctAnswer;
-      if (isCorrect) correct++; else wrong++;
-      return { questionId: String(id), status: isCorrect ? 'correct' : 'wrong', selected, correctAnswer: q.correctAnswer };
-    });
-    const score = correct * test.marksPerQuestion - wrong * test.negativeMarksPerWrong;
-    res.json({ total: test.questions.length, correct, wrong, unanswered, score: Math.round(score * 100) / 100, maxMarks: test.questions.length * test.marksPerQuestion, review });
+      if (!Number.isInteger(selected) || selected < 0 || selected >= q.options.length) { unanswered++; continue; }
+      normalizedAnswers[id] = selected;
+      if (selected === q.correctAnswer) correct++;
+      else { wrong++; wrongQuestionIds.push(id); }
+    }
+    const score = Math.round((correct * test.marksPerQuestion - wrong * test.negativeMarksPerWrong) * 100) / 100;
+    const maxMarks = test.questions.length * test.marksPerQuestion;
+    const attempted = correct + wrong;
+    const accuracy = attempted ? Math.round(correct / attempted * 10000) / 100 : 0;
+    const attempt = await MockTestAttempt.create({ student: req.student._id, test: test._id, answers: normalizedAnswers, correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds });
+    session.status = 'submitted'; session.submittedAt = now; await session.save();
+    res.status(201).json({ attemptId: attempt._id, total: test.questions.length, correct, wrong, unanswered, score, maxMarks, accuracy });
   } catch (error) { res.status(400).json({ message: error.message }); }
 });
-
 
 router.post('/', auth, async (req, res) => {
   try {
