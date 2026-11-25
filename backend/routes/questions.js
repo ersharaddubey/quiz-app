@@ -54,7 +54,7 @@ router.get('/:id', async (req, res) => {
 // Create question (Admin only)
 router.post('/', auth, async (req, res) => {
   try {
-    const { question, options, correctAnswer, category, subject, syllabus, difficulty, explanation, examName, examYear, paperName, questionLanguage, translation, isPreviousYearQuestion, verified } = req.body;
+    const { question, options, correctAnswer, category, subject, syllabus, difficulty, explanation, examName, examYear, paperName, pyqSourceUrl, questionLanguage, translation, isPreviousYearQuestion, verified } = req.body;
 
     if (!question || !options || options.length < 2 || correctAnswer === undefined) {
       return res.status(400).json({ message: 'Please provide question, at least 2 options and correctAnswer index' });
@@ -93,6 +93,7 @@ router.post('/', auth, async (req, res) => {
       examName: examName || '',
       examYear: examYear ? Number(examYear) : null,
       paperName: paperName || '',
+      pyqSourceUrl: pyqSourceUrl || '',
       questionLanguage: questionLanguage || '',
       translation: translation || '',
       isPreviousYearQuestion: Boolean(isPreviousYearQuestion),
