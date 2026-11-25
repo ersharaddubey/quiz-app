@@ -4,6 +4,7 @@ const Question = require('../models/Question');
 const Category = require('../models/Category');
 const Subject = require('../models/Subject');
 const auth = require('../middleware/auth');
+const { hashQuestion } = require('../services/questionImporter');
 
 // Get all questions (public - for mobile app)
 router.get('/', async (req, res) => {
@@ -70,8 +71,13 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'Invalid category or subject' });
     }
 
+    const questionHash = hashQuestion(question);
+    const duplicate = await Question.findOne({ questionHash }).select('_id');
+    if (duplicate) return res.status(409).json({ message: 'This question already exists' });
+
     const newQuestion = new Question({
       question,
+      questionHash,
       options,
       correctAnswer,
       category,
@@ -98,6 +104,12 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id', auth, async (req, res) => {
   try {
     const body = { ...req.body };
+
+    if (body.question) {
+      body.questionHash = hashQuestion(body.question);
+      const duplicate = await Question.findOne({ questionHash: body.questionHash, _id: { $ne: req.params.id } }).select('_id');
+      if (duplicate) return res.status(409).json({ message: 'Another question with this text already exists' });
+    }
 
     if (body.category) {
       const cat = await Category.findById(body.category);

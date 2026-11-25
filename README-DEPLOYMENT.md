@@ -25,3 +25,51 @@ Android emulator uses `http://10.0.2.2:5001/api` in Expo development mode. A phy
 
 ## Important scope
 This ZIP contains source/configuration changes only. It does not deploy cloud services, create Atlas, or compile an APK. A real backend HTTPS URL must be configured before building a production APK.
+
+## Automatic question updates (every 6 hours)
+
+This repository includes a GitHub Actions workflow at `.github/workflows/question-auto-update.yml`. It calls the backend importer on a six-hour schedule and can also be started from the Actions tab with **Run workflow**.
+
+### Required GitHub Actions secrets
+
+In GitHub → Settings → Secrets and variables → Actions, add:
+
+- `BACKEND_URL`: backend origin only, for example `https://your-service.onrender.com` (no trailing `/api`).
+- `QUESTION_IMPORT_SECRET`: a long random secret; set the exact same value in the backend environment.
+
+### Required backend environment
+
+- `QUESTION_IMPORT_SECRET`: same random secret as GitHub Actions.
+- `QUESTION_SOURCE_URLS`: comma-separated HTTPS raw JSON URLs from GitHub question datasets you have permission to reuse.
+- `QUESTION_API_URLS`: optional comma-separated free/public API endpoints that return the same normalized JSON format. Each URL must return either a JSON array or `{ "questions": [...] }` (or `results` / `data` arrays). Each question should use `question`, `options`, zero-based `correctAnswer`, `categoryName`, `subjectName`, and optional `difficulty`, `explanation`, `id`, `syllabusName`.
+- `MONGO_URI`, `JWT_SECRET` and existing deployment variables remain required.
+
+Optional AI generation (OpenAI-compatible Chat Completions endpoint; the model name is provider-specific):
+
+- `QUESTION_AI_API_URL`
+- `QUESTION_AI_API_KEY`
+- `QUESTION_AI_MODEL` (required by the chosen provider; specify a model that your provider account can access)
+- `QUESTION_AI_BATCH_SIZE` (optional; default 25, maximum 100)
+
+If AI settings are omitted, the GitHub dataset importer still runs. No paid/free AI provider is bundled: provider access and its pricing/limits depend on the API key you configure. Do not point this at an API unless its terms allow automated question generation and commercial use.
+
+### Import behaviour and safety
+
+- Existing questions are not deleted or rewritten.
+- New imports are automatically published into the existing Questions collection only when question shape, options, answer index, and exact existing active category/subject mapping pass validation.
+- Unmatched categories/subjects and malformed records are skipped; this importer does not create categories or subjects implicitly.
+- A normalized SHA-256 question hash and a partial unique MongoDB index prevent repeated imports while leaving legacy records untouched.
+- `verified` remains `false`: structural validation is not independent fact-checking. Imported items are live per the requested auto-publish mode, so periodically review factual accuracy, explanations, source licensing, and current-affairs freshness.
+- Import history is available at `GET /api/automation/history` (admin JWT required). An admin can trigger `POST /api/automation/run-now`.
+- The scheduled endpoint is `POST /api/automation/import` and requires `x-question-import-secret`.
+
+### Deploy checklist
+
+1. Deploy the backend code and set the environment variables above.
+2. Confirm the MongoDB user can create indexes (Mongoose creates the new partial unique index on startup).
+3. Add the two GitHub Actions secrets.
+4. Add at least one licensed JSON source URL. Configure AI variables if desired.
+5. Open GitHub → Actions → **ExamFoundery automatic question update** → **Run workflow** for the first test.
+6. Check the workflow log and `GET /api/automation/history` before relying on the six-hour schedule.
+
+GitHub scheduled workflows run in UTC and may be delayed during high load. The schedule is `17 */6 * * *` (00:17, 06:17, 12:17, 18:17 UTC).

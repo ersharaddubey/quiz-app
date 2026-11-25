@@ -164,6 +164,9 @@ app.use('/api/banners', require('./routes/banners'));
 
 app.use('/api/upload', require('./routes/upload'));
 
+// Scheduled question imports (GitHub Actions -> secured backend endpoint)
+app.use('/api/automation', require('./routes/automation'));
+
 // =====================================
 // 404 HANDLER
 // =====================================

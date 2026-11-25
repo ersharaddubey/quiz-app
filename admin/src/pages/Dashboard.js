@@ -8,6 +8,8 @@ function Dashboard({ onLogout }) {
   const [subjects, setSubjects] = useState([]);
   const [syllabusList, setSyllabusList] = useState([]);
   const [banners, setBanners] = useState([]);
+  const [importRuns, setImportRuns] = useState([]);
+  const [importBusy, setImportBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(''); // question | category | subject | syllabus | banner
@@ -60,6 +62,33 @@ function Dashboard({ onLogout }) {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  const fetchImportHistory = async () => {
+    try {
+      const res = await API.get('/automation/history');
+      setImportRuns(res.data || []);
+    } catch (err) {
+      showMsg(err.response?.data?.message || 'Could not load import history', true);
+    }
+  };
+
+  const runImportNow = async () => {
+    if (!window.confirm('Run the automatic question importer now?')) return;
+    setImportBusy(true);
+    try {
+      const res = await API.post('/automation/run-now');
+      showMsg(`Import ${res.data.status}: ${res.data.inserted} added, ${res.data.duplicates} duplicates, ${res.data.skipped} skipped.`);
+      await fetchImportHistory();
+      await fetchAll();
+    } catch (err) {
+      showMsg(err.response?.data?.message || 'Import failed', true);
+      await fetchImportHistory();
+    } finally { setImportBusy(false); }
+  };
+
+  useEffect(() => {
+    if (tab === 'automation') fetchImportHistory();
+  }, [tab]);
 
   const showMsg = (msg, isError = false) => {
     if (isError) {
@@ -426,7 +455,8 @@ function Dashboard({ onLogout }) {
             { id: 'categories', label: 'Categories' },
             { id: 'subjects', label: 'Subjects' },
             { id: 'syllabus', label: 'Syllabus' },
-            { id: 'banners', label: 'Banners / Slider' }
+            { id: 'banners', label: 'Banners / Slider' },
+            { id: 'automation', label: '🤖 Auto Questions' }
           ].map(t => (
             <button
               key={t.id}
@@ -480,6 +510,43 @@ function Dashboard({ onLogout }) {
                   ))}
                 </tbody>
               </table>
+            )}
+          </div>
+        )}
+
+        {/* AUTOMATIC QUESTION IMPORT TAB */}
+        {tab === 'automation' && (
+          <div className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div>
+                <h2>Automatic Question Updates</h2>
+                <p style={{ color: '#666' }}>GitHub Actions triggers the backend every 6 hours. New questions are published after structural checks and category/subject matching.</p>
+              </div>
+              <button className="btn btn-primary" disabled={importBusy} onClick={runImportNow}>
+                {importBusy ? 'Import running…' : '▶ Run import now'}
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, margin: '18px 0' }}>
+              {[
+                ['Schedule', 'Every 6 hours'],
+                ['Publishing', 'Auto after checks'],
+                ['Duplicate protection', 'Question hash'],
+                ['Sources', 'GitHub / APIs / AI*']
+              ].map(([label, value]) => <div key={label} style={{ padding: 12, border: '1px solid #ddd', borderRadius: 8 }}><small style={{ color: '#666' }}>{label}</small><div style={{ fontWeight: 600 }}>{value}</div></div>)}
+            </div>
+            <p style={{ color: '#777', fontSize: 13 }}>*AI runs only after an OpenAI-compatible provider endpoint, API key and model are configured on the backend. Structural validation does not independently fact-check answers. Review source rights and factual accuracy regularly.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px' }}>
+              <h3>Recent import runs</h3>
+              <button className="btn btn-outline" onClick={fetchImportHistory}>Refresh</button>
+            </div>
+            {importRuns.length === 0 ? <p>No import history yet. Configure the backend and GitHub Actions secrets, then run the workflow.</p> : (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table">
+                  <thead><tr><th>Started</th><th>Status</th><th>Fetched</th><th>Inserted</th><th>Duplicates</th><th>Skipped</th></tr></thead>
+                  <tbody>{importRuns.map(run => <tr key={run._id}><td>{run.startedAt ? new Date(run.startedAt).toLocaleString() : '-'}</td><td>{run.status}</td><td>{run.fetched}</td><td>{run.inserted}</td><td>{run.duplicates}</td><td>{run.skipped}</td></tr>)}</tbody>
+                </table>
+                {importRuns.some(run => run.errors?.length) && <details><summary>Latest import errors</summary><ul>{(importRuns.find(run => run.errors?.length)?.errors || []).map((error, index) => <li key={index}>{error}</li>)}</ul></details>}
+              </div>
             )}
           </div>
         )}

@@ -1,0 +1,14 @@
+{
+  "questions": [
+    {
+      "id": "provider-question-001",
+      "question": "Example question text?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": 1,
+      "categoryName": "SSC",
+      "subjectName": "General Knowledge",
+      "difficulty": "Easy",
+      "explanation": "Example explanation. Replace with a fact-checked question."
+    }
+  ]
+}

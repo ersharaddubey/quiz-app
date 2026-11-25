@@ -1,0 +1,32 @@
+name: ExamFoundery automatic question update
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: examfoundery-question-import
+  cancel-in-progress: false
+
+jobs:
+  import-questions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger secured backend importer
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          QUESTION_IMPORT_SECRET: ${{ secrets.QUESTION_IMPORT_SECRET }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BACKEND_URL:-}" || -z "${QUESTION_IMPORT_SECRET:-}" ]]; then
+            echo "Set BACKEND_URL and QUESTION_IMPORT_SECRET in GitHub Actions secrets."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            --max-time 240 \
+            -X POST "${BACKEND_URL%/}/api/automation/import" \
+            -H "x-question-import-secret: ${QUESTION_IMPORT_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d '{"trigger":"github-actions"}'
