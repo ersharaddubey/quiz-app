@@ -135,5 +135,5 @@ When creating or editing a question in Admin, fill Exam name, Exam year and Pape
 - Student accounts now support email/password registration and login. Student tokens are separate from admin access; student tokens are explicitly rejected by admin middleware.
 - Authenticated mock-test attempts are stored and power per-student accuracy/score analytics, weekly leaderboard rankings and wrong-question revision lists. Sign in from the mobile My Progress shortcut before taking mock tests to save history.
 - The student token currently remains in memory for the active app session. Students may need to sign in again after closing/restarting the app; secure persistent token storage is still required for a production-ready remembered session.
-- Mock-test countdown is currently enforced in the mobile client. Server-side attempt/session expiry and anti-cheat enforcement are not yet implemented.
+- Mock-test start creates an authenticated server-side session with an expiry timestamp. Submission validates ownership, expiry and single-use session status; the API does not return correct answers. This is a basic server-enforced time limit, not a complete anti-cheat system.
 - Hindi/English selection is implemented for Current Affairs; full app-wide localization and paired translations for every question and option still require translated content and admin entry.
