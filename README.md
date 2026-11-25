@@ -132,6 +132,8 @@ When creating or editing a question in Admin, fill Exam name, Exam year and Pape
 
 ### Important implementation limits
 - Current Affairs and Job Alerts are editorial CMS modules; no unverified external feed is auto-published. Admin must enter and verify source-backed records.
-- Mock-test countdown is currently enforced in the mobile client; server-side attempt/session expiry and student-account result history are not yet implemented.
-- Per-student leaderboard, cloud progress analytics, study planner/reminders and an AI tutor require a student identity/profile system and/or a configured AI provider. They are not included in this first feature branch.
-- Hindi/English selection is implemented for Current Affairs; app-wide translated UI and paired translations for all questions are not yet implemented.
+- Student accounts now support email/password registration and login. Student tokens are separate from admin access; student tokens are explicitly rejected by admin middleware.
+- Authenticated mock-test attempts are stored and power per-student accuracy/score analytics, weekly leaderboard rankings and wrong-question revision lists. Sign in from the mobile My Progress shortcut before taking mock tests to save history.
+- The student token currently remains in memory for the active app session. Students may need to sign in again after closing/restarting the app; secure persistent token storage is still required for a production-ready remembered session.
+- Mock-test countdown is currently enforced in the mobile client. Server-side attempt/session expiry and anti-cheat enforcement are not yet implemented.
+- Hindi/English selection is implemented for Current Affairs; full app-wide localization and paired translations for every question and option still require translated content and admin entry.
