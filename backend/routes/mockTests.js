@@ -43,12 +43,15 @@ router.post('/:id/submit', studentAuth, async (req, res) => {
     if (!test) return res.status(404).json({ message: 'Mock test not found' });
     const { sessionId, answers = {} } = req.body;
     if (!sessionId || !answers || typeof answers !== 'object' || Array.isArray(answers)) return res.status(400).json({ message: 'A valid session and answers object are required' });
-    const session = await MockTestSession.findOne({ _id: sessionId, test: test._id, student: req.student._id, status: 'active' });
-    if (!session) return res.status(409).json({ message: 'Mock test session is invalid, expired or already submitted. Start a new attempt.' });
     const now = new Date();
-    if (now > session.expiresAt) {
-      session.status = 'expired'; await session.save();
-      return res.status(410).json({ message: 'Time is over. This mock test session has expired.' });
+    const session = await MockTestSession.findOneAndUpdate(
+      { _id: sessionId, test: test._id, student: req.student._id, status: 'active', expiresAt: { $gte: now } },
+      { $set: { status: 'submitted', submittedAt: now } },
+      { new: true }
+    );
+    if (!session) {
+      await MockTestSession.updateOne({ _id: sessionId, test: test._id, student: req.student._id, status: 'active', expiresAt: { $lt: now } }, { $set: { status: 'expired' } });
+      return res.status(409).json({ message: 'Mock test session is invalid, expired or already submitted. Start a new attempt.' });
     }
     const questions = await Question.find({ _id: { $in: test.questions } }).select('correctAnswer options');
     const byId = new Map(questions.map(q => [String(q._id), q]));
@@ -70,7 +73,6 @@ router.post('/:id/submit', studentAuth, async (req, res) => {
     const attempted = correct + wrong;
     const accuracy = attempted ? Math.round(correct / attempted * 10000) / 100 : 0;
     const attempt = await MockTestAttempt.create({ student: req.student._id, test: test._id, answers: normalizedAnswers, correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds });
-    session.status = 'submitted'; session.submittedAt = now; await session.save();
     res.status(201).json({ attemptId: attempt._id, total: test.questions.length, correct, wrong, unanswered, score, maxMarks, accuracy });
   } catch (error) { res.status(400).json({ message: error.message }); }
 });
