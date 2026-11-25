@@ -18,7 +18,8 @@ const currentAffairSchema = new mongoose.Schema({
 });
 currentAffairSchema.pre('save', function(next) {
   if (this.correctAnswer >= this.options.length) return next(new Error('correctAnswer is outside options range'));
-  if (this.status === 'published' && (!/^https?:\\/\\//i.test(this.sourceUrl || '') || !this.sourceName)) return next(new Error('Published current affairs require a source name and HTTP(S) source URL'));
+  const sourceUrl = String(this.sourceUrl || '');
+  if (this.status === 'published' && (!(sourceUrl.startsWith('https://') || sourceUrl.startsWith('http://')) || !this.sourceName)) return next(new Error('Published current affairs require a source name and HTTP(S) source URL'));
   this.updatedAt = new Date();
   next();
 });
