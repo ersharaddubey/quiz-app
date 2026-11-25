@@ -10,6 +10,7 @@ import CurrentAffairsScreen from './src/screens/CurrentAffairsScreen';
 import JobAlertsScreen from './src/screens/JobAlertsScreen';
 import MockTestsScreen from './src/screens/MockTestsScreen';
 import MockTestAttemptScreen from './src/screens/MockTestAttemptScreen';
+import PYQBankScreen from './src/screens/PYQBankScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ export default function App() {
           <Stack.Screen name="Result" component={ResultScreen} />
           <Stack.Screen name="CurrentAffairs" component={CurrentAffairsScreen} />
           <Stack.Screen name="JobAlerts" component={JobAlertsScreen} />
+          <Stack.Screen name="PYQBank" component={PYQBankScreen} />
           <Stack.Screen name="MockTests" component={MockTestsScreen} />
           <Stack.Screen name="MockTestAttempt" component={MockTestAttemptScreen} />
         </Stack.Navigator>
