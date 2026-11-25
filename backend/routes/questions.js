@@ -9,13 +9,16 @@ const { hashQuestion } = require('../services/questionImporter');
 // Get all questions (public - for mobile app)
 router.get('/', async (req, res) => {
   try {
-    const { category, subject, syllabus, difficulty, limit } = req.query;
+    const { category, subject, syllabus, difficulty, limit, isPreviousYearQuestion, examName, examYear } = req.query;
     let filter = {};
 
     if (category) filter.category = category;
     if (subject) filter.subject = subject;
     if (syllabus) filter.syllabus = syllabus;
     if (difficulty) filter.difficulty = difficulty;
+    if (isPreviousYearQuestion === 'true') filter.isPreviousYearQuestion = true;
+    if (examName) filter.examName = examName;
+    if (examYear && Number.isInteger(Number(examYear))) filter.examYear = Number(examYear);
 
     let query = Question.find(filter)
       .populate('category', 'name icon')
@@ -51,7 +54,7 @@ router.get('/:id', async (req, res) => {
 // Create question (Admin only)
 router.post('/', auth, async (req, res) => {
   try {
-    const { question, options, correctAnswer, category, subject, syllabus, difficulty, explanation } = req.body;
+    const { question, options, correctAnswer, category, subject, syllabus, difficulty, explanation, examName, examYear, paperName, questionLanguage, translation, isPreviousYearQuestion } = req.body;
 
     if (!question || !options || options.length < 2 || correctAnswer === undefined) {
       return res.status(400).json({ message: 'Please provide question, at least 2 options and correctAnswer index' });
@@ -86,7 +89,13 @@ router.post('/', auth, async (req, res) => {
       categoryName: cat.name,
       subjectName: sub.name,
       difficulty: difficulty || 'Medium',
-      explanation: explanation || ''
+      explanation: explanation || '',
+      examName: examName || '',
+      examYear: examYear ? Number(examYear) : null,
+      paperName: paperName || '',
+      questionLanguage: questionLanguage || '',
+      translation: translation || '',
+      isPreviousYearQuestion: Boolean(isPreviousYearQuestion)
     });
 
     const saved = await newQuestion.save();
