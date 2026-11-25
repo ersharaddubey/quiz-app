@@ -332,7 +332,7 @@ function Dashboard({ onLogout }) {
         syllabus: '',
         difficulty: 'Medium',
         explanation: '',
-        examName: '', examYear: '', paperName: '', isPreviousYearQuestion: false, verified: false
+        examName: '', examYear: '', paperName: '', pyqSourceUrl: '', isPreviousYearQuestion: false, verified: false
       });
     }
     setShowModal(true);
