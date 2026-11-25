@@ -17,6 +17,13 @@ const questionSchema = new mongoose.Schema({
   questionHash: { type: String, default: '' },
   autoValidated: { type: Boolean, default: false },
   verified: { type: Boolean, default: false },
+  // Optional exam provenance; legacy question documents remain valid.
+  examName: { type: String, default: '', index: true },
+  examYear: { type: Number, default: null, index: true },
+  paperName: { type: String, default: '' },
+  questionLanguage: { type: String, enum: ['hi', 'en', 'both', ''], default: '' },
+  translation: { type: String, default: '' },
+  isPreviousYearQuestion: { type: Boolean, default: false, index: true },
   importedAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
