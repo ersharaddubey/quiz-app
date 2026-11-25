@@ -29,7 +29,8 @@ function Dashboard({ onLogout }) {
     subject: '',
     syllabus: '',
     difficulty: 'Medium',
-    explanation: ''
+    explanation: '',
+    examName: '', examYear: '', paperName: '', isPreviousYearQuestion: false, verified: false
   });
   const [catForm, setCatForm] = useState({ name: '', description: '', icon: '📚', order: 0 });
   const [subForm, setSubForm] = useState({ name: '', category: '', description: '', icon: '📖', order: 0 });
@@ -314,7 +315,9 @@ function Dashboard({ onLogout }) {
         subject: item.subject?._id || item.subject || '',
         syllabus: item.syllabus?._id || item.syllabus || '',
         difficulty: item.difficulty || 'Medium',
-        explanation: item.explanation || ''
+        explanation: item.explanation || '',
+        examName: item.examName || '', examYear: item.examYear || '', paperName: item.paperName || '',
+        isPreviousYearQuestion: Boolean(item.isPreviousYearQuestion), verified: Boolean(item.verified)
       });
     } else {
       setQForm({
@@ -325,7 +328,8 @@ function Dashboard({ onLogout }) {
         subject: '',
         syllabus: '',
         difficulty: 'Medium',
-        explanation: ''
+        explanation: '',
+        examName: '', examYear: '', paperName: '', isPreviousYearQuestion: false, verified: false
       });
     }
     setShowModal(true);
@@ -368,7 +372,12 @@ function Dashboard({ onLogout }) {
       ...qForm,
       options: filledOptions,
       correctAnswer: Math.min(qForm.correctAnswer, filledOptions.length - 1),
-      syllabus: qForm.syllabus || undefined
+      syllabus: qForm.syllabus || undefined,
+      examName: qForm.examName,
+      examYear: qForm.examYear ? Number(qForm.examYear) : null,
+      paperName: qForm.paperName,
+      isPreviousYearQuestion: qForm.isPreviousYearQuestion,
+      verified: qForm.verified
     };
     try {
       if (editing) {
@@ -984,6 +993,14 @@ function Dashboard({ onLogout }) {
                     <option>Medium</option>
                     <option>Hard</option>
                   </select>
+                </div>
+                <div className="form-group">
+                  <label>Previous Year Question metadata (optional)</label>
+                  <input value={qForm.examName} onChange={e => setQForm({ ...qForm, examName: e.target.value })} placeholder="Exam e.g. SSC CGL" />
+                  <input type="number" value={qForm.examYear} onChange={e => setQForm({ ...qForm, examYear: e.target.value })} placeholder="Exam year e.g. 2024" style={{ marginTop: 8 }} />
+                  <input value={qForm.paperName} onChange={e => setQForm({ ...qForm, paperName: e.target.value })} placeholder="Paper / shift (optional)" style={{ marginTop: 8 }} />
+                  <label style={{ display: 'block', marginTop: 10 }}><input type="checkbox" checked={qForm.isPreviousYearQuestion} onChange={e => setQForm({ ...qForm, isPreviousYearQuestion: e.target.checked })} /> Actual previous-year question</label>
+                  <label style={{ display: 'block', marginTop: 6 }}><input type="checkbox" checked={qForm.verified} onChange={e => setQForm({ ...qForm, verified: e.target.checked })} /> I verified this question against the original paper/source</label>
                 </div>
                 <div className="form-group">
                   <label>Explanation (optional)</label>
