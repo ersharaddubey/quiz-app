@@ -125,6 +125,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const payload = { ...req.body, questions: Array.isArray(req.body.questions) ? req.body.questions : [] };
     if (!payload.questions.length) return res.status(400).json({ message: 'At least one question is required' });
+    if (new Set(payload.questions.map(String)).size !== payload.questions.length) return res.status(400).json({ message: 'Duplicate question IDs are not allowed' });
     const count = await Question.countDocuments({ _id: { $in: payload.questions } });
     if (count !== new Set(payload.questions.map(String)).size) return res.status(400).json({ message: 'One or more question IDs are invalid' });
     const test = await MockTest.create(payload);
