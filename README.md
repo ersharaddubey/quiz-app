@@ -91,3 +91,29 @@ For production APKs, set `EXPO_PUBLIC_API_URL` in `mobile/.env` to your deployed
 - POST `/api/questions` (auth)
 - PUT `/api/questions/:id` (auth)
 - DELETE `/api/questions/:id` (auth)
+
+
+## Government Exam Modules (new feature branch)
+
+The feature branch `feature/government-exam-modules` adds backend foundations for:
+- Daily current affairs with Hindi/English language, topic, source URL/date and draft/published workflow.
+- Government job alerts with official notification URL, application dates, admit-card/result links and admin CRUD.
+- Mock tests with exam category, duration, positive/negative marking, admin CRUD, public test listing, answer-safe question delivery and server-side scoring.
+- Optional PYQ provenance fields on questions (exam name, year, paper, language and PYQ flag); existing records remain valid.
+
+### New API endpoints
+- `GET /api/current-affairs?language=hi&topic=Economy&limit=30` (published only)
+- `GET /api/current-affairs/admin/all` (admin)
+- `POST/PUT/DELETE /api/current-affairs` (admin; update/delete use `:id`)
+- `GET /api/job-alerts?category=ID` (published only)
+- `GET /api/job-alerts/admin/all` and admin `POST/PUT/DELETE /api/job-alerts`
+- `GET /api/mock-tests?category=ID` (published tests)
+- `GET /api/mock-tests/:id` (published test, correct answers excluded)
+- `POST /api/mock-tests/:id/submit` (server-side scoring and negative marking)
+- Admin `GET /api/mock-tests/admin/all` and `POST/PUT/DELETE /api/mock-tests`
+
+### Content quality and source policy
+- Only publish current-affairs items after checking the source and answer; source name, URL and source date are stored.
+- Job alerts should use the recruiting body's official notification URL and should be rechecked before publishing.
+- A PYQ must be labelled as such only when its exam/year/paper provenance has been checked. Generic trivia or AI-generated questions must not be labelled PYQ.
+- Current-affairs and job-alert records are not auto-populated with invented content; the admin endpoints are ready for verified editorial content.
