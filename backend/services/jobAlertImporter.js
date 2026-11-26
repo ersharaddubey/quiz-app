@@ -26,8 +26,10 @@ async function normalizeJobItem(item) {
 async function importJobAlertDrafts() {
   const feeds = (process.env.JOB_ALERT_FEED_URLS || '').split(',').map(v => v.trim()).filter(Boolean);
   const hosts = (process.env.JOB_ALERT_ALLOWED_HOSTS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-  if (!feeds.length || !hosts.length) throw new Error('Configure JOB_ALERT_FEED_URLS and JOB_ALERT_ALLOWED_HOSTS first');
-  const stats = { feeds: 0, items: 0, drafts: 0, skipped: 0, errors: [] };
+  const stats = { status: 'ok', feeds: 0, items: 0, drafts: 0, skipped: 0, errors: [] };
+  if (!feeds.length || !hosts.length) {
+    return { ...stats, status: 'skipped', reason: 'No permitted recruitment RSS/Atom feeds configured; see GOVERNMENT-DATA-AUTOMATION.md.' };
+  }
   for (const feedUrl of feeds) {
     if (!allowedFeed(feedUrl, hosts)) { stats.errors.push('Blocked feed URL: ' + feedUrl); continue; }
     try {
