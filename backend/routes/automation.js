@@ -5,6 +5,19 @@ const auth = require('../middleware/auth');
 const QuestionImportRun = require('../models/QuestionImportRun');
 const { importQuestions } = require('../services/questionImporter');
 
+// Public deployment probe: reports route availability without exposing secret values.
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    ok: true,
+    service: 'quiz-automation',
+    imports: {
+      questions: Boolean(process.env.QUESTION_IMPORT_SECRET),
+      currentAffairs: Boolean(process.env.CURRENT_AFFAIRS_IMPORT_SECRET),
+      jobAlerts: Boolean(process.env.JOB_ALERT_IMPORT_SECRET)
+    }
+  });
+});
+
 function secretMatches(received, expected) {
   if (!received || !expected) return false;
   const a = Buffer.from(String(received));
