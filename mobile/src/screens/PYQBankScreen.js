@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, StyleSheet } from 'react-native';
 import API from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
-import { useLanguage } from '../context/LanguageContext';
 export default function PYQBankScreen() {
-  const { t } = useLanguage();
   const { t } = useLanguage();
   const [examName,setExamName]=useState(''); const [examYear,setExamYear]=useState(''); const [items,setItems]=useState([]); const [loading,setLoading]=useState(false); const [error,setError]=useState('');
   const load=async()=>{setLoading(true);setError('');try{const r=await API.get('/questions',{params:{isPreviousYearQuestion:'true',...(examName.trim()?{examName:examName.trim()}:{}),...(examYear.trim()?{examYear:examYear.trim()}:{}),limit:100}});setItems(r.data||[]);}catch(e){setError(e.response?.data?.message||'PYQ could not be loaded');}finally{setLoading(false);}};
   useEffect(()=>{load();},[]);
-  return <View style={s.page}><Text style={s.title}>{t('previousYearQuestions')}</Text><View style={s.filters}><TextInput value={examName} onChangeText={setExamName} placeholder={t('examName')} placeholderTextColor="#8296B2" style={s.input}/><TextInput value={examYear} onChangeText={setExamYear} placeholder={t('year')} placeholderTextColor="#8296B2" keyboardType="numeric" style={[s.input,{width:90}]}/></View><TouchableOpacity style={s.button} onPress={load}><Text style={s.buttonText}{t('searchPYQ')}</Text></TouchableOpacity>
+  return <View style={s.page}><Text style={s.title}>{t('previousYearQuestions')}</Text><View style={s.filters}><TextInput value={examName} onChangeText={setExamName} placeholder={t('examName')} placeholderTextColor="#8296B2" style={s.input}/><TextInput value={examYear} onChangeText={setExamYear} placeholder={t('year')} placeholderTextColor="#8296B2" keyboardType="numeric" style={[s.input,{width:90}]}/></View><TouchableOpacity style={s.button} onPress={load}><Text style={s.buttonText}>{t('searchPYQ')}</Text></TouchableOpacity>
   {loading?<ActivityIndicator color="#00E5FF"/>:<ScrollView>{!!error&&<Text style={s.muted}>{error}</Text>}{!error&&!items.length&&<Text style={s.muted}>{t('noPYQ')}</Text>}
   {items.map(item=><View key={item._id} style={s.card}><Text style={s.meta}>{item.examName} {item.examYear||''} · {item.paperName||item.subjectName||''}</Text><Text style={s.question}>{item.question}</Text>{item.options.map((o,i)=><Text key={i} style={s.option}>{String.fromCharCode(65+i)}. {o}</Text>)}{!!item.explanation&&<Text style={s.explanation}>{item.explanation}</Text>}</View>)}</ScrollView>}</View>;
 }
