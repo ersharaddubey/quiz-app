@@ -39,7 +39,7 @@ export default function ResultScreen({ route, navigation }) {
           <Text style={styles.msg}>{msg}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}{t('reviewAnswers')}</Text>
+        <Text style={styles.sectionTitle}>{t('reviewAnswers')}</Text>
         {answers.map((a, i) => (
           <View
             key={i}
