@@ -50,3 +50,25 @@ For RSS/Atom feeds, put comma-separated HTTPS feed URLs in the corresponding `*_
 - UPSC examination notifications: https://upsc.gov.in/exam-notification/
 
 Re-check each authority's portal and feed terms before enabling a new automated feed.
+
+## Existing MongoDB collection inventory
+
+The current backend models define these application collections (Mongoose uses the pluralized model names unless an explicit collection name is configured):
+
+- `Admin`: administrator accounts.
+- `Banner`: home-screen banners.
+- `Category`: exam-family categories (UPSC, SSC, Banking, Railways, Defence, Teaching, State PSC, Police, Insurance, PSU & Others, Judicial, Engineering, Medical, Agriculture).
+- `Subject`: subjects linked to categories.
+- `Syllabus`: subject/category-linked syllabus chapters and topics.
+- `Question`: practice questions and PYQ provenance/verification metadata.
+- `QuestionImportRun`: question importer run history.
+- `CurrentAffair`: bilingual current-affairs drafts and published items.
+- `JobAlert`: recruitment/admit-card/result notice drafts.
+- `MockTest`: mock-test definitions and scoring rules.
+- `MockTestSession`: timed test sessions and submission state.
+- `MockTestAttempt`: submitted test attempts and score summaries.
+- `Student`: student accounts and profile/progress aggregates.
+- `StudentTopicProgress`: student topic accuracy and adaptive-learning signals.
+- `StudyPlan`: daily study plans and completion state.
+
+The source registry is currently a version-controlled JSON discovery catalogue, not a MongoDB collection. The existing question importer requires category and subject records to exist before questions can be saved. It does not auto-create every state/exam category from the registry. Seed or add the required categories/subjects in Admin before enabling a new exam-specific question feed.
