@@ -65,7 +65,7 @@ router.post('/:id/submit', studentAuth, async (req, res) => {
       if (existing) return res.status(200).json({
         attemptId: existing._id, total: existing.correct + existing.wrong + existing.unanswered,
         correct: existing.correct, wrong: existing.wrong, unanswered: existing.unanswered,
-        score: existing.score, maxMarks: existing.maxMarks, accuracy: existing.accuracy
+        score: existing.score, maxMarks: existing.maxMarks, accuracy: existing.accuracy, sections: existing.sections || []
       });
       await MockTestSession.updateOne(
         { _id: sessionId, test: test._id, student: req.student._id, status: 'active', expiresAt: { $lt: now } },
@@ -81,15 +81,16 @@ router.post('/:id/submit', studentAuth, async (req, res) => {
       questions,
       answers,
       marksPerQuestion: test.marksPerQuestion,
-      negativeMarksPerWrong: test.negativeMarksPerWrong
+      negativeMarksPerWrong: test.negativeMarksPerWrong,
+      sections: test.sections || []
     });
-    const { correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds, normalizedAnswers } = result;
+    const { correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds, normalizedAnswers, sections } = result;
 
     const attempt = await MockTestAttempt.findOneAndUpdate(
       { session: session._id },
       { $setOnInsert: {
         session: session._id, student: req.student._id, test: test._id,
-        answers: normalizedAnswers, correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds
+        answers: normalizedAnswers, correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds, sections
       } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
