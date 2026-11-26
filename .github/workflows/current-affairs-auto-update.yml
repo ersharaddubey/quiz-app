@@ -1,8 +1,8 @@
-name: Daily government exam current affairs draft import
+name: Six-hour current affairs and recruitment notice import
 
 on:
   schedule:
-    - cron: '30 3 * * *'
+    - cron: '47 */6 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -10,11 +10,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  import-current-affairs:
+  import-current-affairs-and-recruitment:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Trigger secured allowlisted RSS importer
+      - name: Trigger secured allowlisted current affairs draft importer
         env:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           CURRENT_AFFAIRS_IMPORT_SECRET: ${{ secrets.CURRENT_AFFAIRS_IMPORT_SECRET }}
@@ -24,14 +24,13 @@ jobs:
             echo "Set BACKEND_URL and CURRENT_AFFAIRS_IMPORT_SECRET in GitHub Actions secrets."
             exit 1
           fi
-          curl --fail-with-body --silent --show-error \
-            --max-time 840 \
+          curl --fail-with-body --silent --show-error --max-time 840 \
             -X POST "${BACKEND_URL%/}/api/automation/current-affairs/import" \
             -H "x-current-affairs-secret: ${CURRENT_AFFAIRS_IMPORT_SECRET}" \
             -H "Content-Type: application/json" \
             -d '{"trigger":"github-actions","reviewRequired":true}'
 
-      - name: Trigger official job alerts draft importer
+      - name: Trigger secured allowlisted recruitment draft importer
         env:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           JOB_ALERT_IMPORT_SECRET: ${{ secrets.JOB_ALERT_IMPORT_SECRET }}
@@ -41,8 +40,7 @@ jobs:
             echo "Set BACKEND_URL and JOB_ALERT_IMPORT_SECRET in GitHub Actions secrets."
             exit 1
           fi
-          curl --fail-with-body --silent --show-error \
-            --max-time 840 \
+          curl --fail-with-body --silent --show-error --max-time 840 \
             -X POST "${BACKEND_URL%/}/api/automation/job-alerts/import" \
             -H "x-job-alert-import-secret: ${JOB_ALERT_IMPORT_SECRET}" \
             -H "Content-Type: application/json" \
