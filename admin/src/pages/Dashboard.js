@@ -117,7 +117,7 @@ function Dashboard({ onLogout }) {
   const manageModuleRecord = async (resource, item = null) => {
     const defaults = {
       'current-affairs': { title: 'Headline', question: 'Question text', options: ['Option A','Option B','Option C','Option D'], correctAnswer: 0, sourceDate: new Date().toISOString(), language: 'en', topic: 'General', sourceName: '', sourceUrl: '', status: 'draft' },
-      'job-alerts': { title: 'Recruitment title', organization: 'Recruiting body', officialUrl: 'https://', applicationStart: null, applicationEnd: null, vacancies: null, status: 'draft' },
+      'job-alerts': { title: 'Recruitment title', titleHi: '', organization: 'Recruiting body', organizationHi: '', description: '', descriptionHi: '', officialUrl: 'https://', applicationStart: null, applicationEnd: null, vacancies: null, status: 'draft' },
       'mock-tests': { title: 'Mock test title', category: categories[0]?._id || '', questions: [], durationMinutes: 60, marksPerQuestion: 1, negativeMarksPerWrong: 0, isPublished: false }
     };
     const raw = window.prompt('Enter complete JSON record. Required fields are shown in the example.', JSON.stringify(item || defaults[resource], null, 2));
@@ -311,8 +311,8 @@ function Dashboard({ onLogout }) {
     setEditing(item?._id || null);
     if (item) {
       setQForm({
-        question: item.question,
-        options: [...item.options],
+        question: item.question, questionHi: item.questionHi || '',
+        options: [...item.options], optionsHi: Array.isArray(item.optionsHi) && item.optionsHi.length === item.options.length ? [...item.optionsHi] : item.options.map(() => ''),
         correctAnswer: item.correctAnswer,
         category: item.category?._id || item.category || '',
         subject: item.subject?._id || item.subject || '',
