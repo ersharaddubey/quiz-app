@@ -5,6 +5,9 @@ const StudentTopicProgress = require('../models/StudentTopicProgress');
 const StudyPlan = require('../models/StudyPlan');
 const CurrentAffair = require('../models/CurrentAffair');
 const JobAlert = require('../models/JobAlert');
+const MockTestAttempt = require('../models/MockTestAttempt');
+const Question = require('../models/Question');
+const { buildAdaptiveRecommendations } = require('../services/adaptiveLearning');
 const { summarizeTasks, dateKey, streakFromDateKeys, normalizeTopic } = require('../services/studentTools');
 const router = express.Router();
 router.use(studentAuth);
@@ -163,6 +166,32 @@ router.post('/assistant/practice', async (req, res) => {
     }
     res.json({ topic, questions, generated: true, pyq: false });
   } catch (error) { res.status(502).json({ message: error.name === 'TimeoutError' ? 'AI practice generation timed out' : error.message }); }
+});
+
+
+router.get('/adaptive/recommendations', async (req, res) => {
+  try {
+    const days = Math.min(Math.max(Number(req.query.days) || 30, 7), 90);
+    const since = new Date(Date.now() - days * 86400000);
+    const attempts = await MockTestAttempt.find({ student: req.student._id, submittedAt: { $gte: since } })
+      .populate({ path: 'test', select: 'questions' }).sort({ submittedAt: -1 }).limit(200).lean();
+    const ids = [...new Set(attempts.flatMap(item => item.test?.questions || []).map(String))];
+    const questions = ids.length ? await Question.find({ _id: { $in: ids } }).select('subject subjectName difficulty correctAnswer').populate('subject', 'name').lean() : [];
+    const result = buildAdaptiveRecommendations({ attempts, questions });
+    res.json({ periodDays: days, attemptsAnalyzed: attempts.length, ...result });
+  } catch (error) { res.status(500).json({ message: error.message }); }
+});
+
+router.get('/revision/due', async (req, res) => {
+  try {
+    const attempts = await MockTestAttempt.find({ student: req.student._id })
+      .populate({ path: 'test', select: 'questions' }).sort({ submittedAt: -1 }).limit(200).lean();
+    const ids = [...new Set(attempts.flatMap(item => item.test?.questions || []).map(String))];
+    const questions = ids.length ? await Question.find({ _id: { $in: ids } }).select('subject subjectName difficulty correctAnswer').populate('subject', 'name').lean() : [];
+    const result = buildAdaptiveRecommendations({ attempts, questions });
+    const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
+    res.json({ dueCount: result.dueRevisions.length, items: result.dueRevisions.slice(0, limit) });
+  } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
 module.exports = router;
