@@ -32,7 +32,7 @@ export default function CurrentAffairsScreen() {
     const now = new Date();
     const from = period === 'daily' ? new Date(now.getTime() - 7 * 86400000) : new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
     const to = period === 'daily' ? now : new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
-    const base = String(API.defaults.baseURL || '').replace(/\\/api\\/?$/, '');
+    const base = String(API.defaults.baseURL || '').replace(/\/api\/?$/, '');
     const url = base + '/api/current-affairs/export/print?language=' + encodeURIComponent(language) + '&from=' + encodeURIComponent(from.toISOString()) + '&to=' + encodeURIComponent(to.toISOString());
     try { await Linking.openURL(url); } catch (error) { Alert.alert('Export unavailable', 'Could not open the print page. Please check your internet connection.'); }
   };
