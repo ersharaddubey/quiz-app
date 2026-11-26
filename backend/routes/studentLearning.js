@@ -60,7 +60,7 @@ router.get('/revision/wrong', studentAuth, async (req, res) => {
   try {
     const ids = await MockTestAttempt.distinct('wrongQuestionIds', { student: req.student._id });
     const questions = await Question.find({ _id: { $in: ids } })
-      .select('question options correctAnswer explanation categoryName subjectName questionLanguage translation')
+      .select('question questionHi options optionsHi correctAnswer explanation explanationHi categoryName subjectName questionLanguage translation')
       .sort({ createdAt: -1 }).limit(100).lean();
     res.json(questions);
   } catch (error) { res.status(500).json({ message: error.message }); }
