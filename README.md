@@ -137,3 +137,13 @@ When creating or editing a question in Admin, fill Exam name, Exam year and Pape
 - The student token currently remains in memory for the active app session. Students may need to sign in again after closing/restarting the app; secure persistent token storage is still required for a production-ready remembered session.
 - Mock-test start creates an authenticated server-side session with an expiry timestamp. Submission validates ownership, expiry and single-use session status; the API does not return correct answers. This is a basic server-enforced time limit, not a complete anti-cheat system.
 - Hindi/English selection is implemented for Current Affairs; full app-wide localization and paired translations for every question and option still require translated content and admin entry.
+
+
+### Production hardening follow-up
+- Student JWTs are now stored with Expo SecureStore (Android Keystore-backed encryption / iOS Keychain) and restored before navigation opens. The My Progress screen validates the restored token with `GET /api/students/me` and supports sign out.
+- App language preference (Hindi/English) is stored securely and shared across the main Home, quiz, result, current-affairs, PYQ, mock-test, job-alert and student-progress screens.
+- Admin question editor supports optional Hindi question text, all Hindi options, and Hindi explanation. Hindi options must be complete or left blank; existing English-only questions remain compatible.
+- Questions may store `questionHi`, `optionsHi`, and `explanationHi`. Job alerts may store `titleHi`, `organizationHi`, and `descriptionHi`. Mobile screens use Hindi content when supplied and fall back to English otherwise.
+- Current Affairs still uses separate Hindi/English records. Content translations must be entered and reviewed by an editor; no machine-generated translation is labelled verified automatically.
+- Expo SecureStore is pinned to the SDK 58-compatible `~58.0.3` package. CI uses Node 22.13.1, which is required by the Expo SDK 58 / React Native 0.88 toolchain.
+- Remaining release gates: real-device Android/iOS sign-in and restart test, live MongoDB/API end-to-end tests, and editorial population/review of Hindi content. Automatic verified government vacancy/current-affairs ingestion is not enabled because the project has no confirmed official feed registry; unverified data must not be auto-published.
