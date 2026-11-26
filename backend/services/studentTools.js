@@ -9,16 +9,19 @@ function summarizeTasks(tasks = []) {
   return { total, completed, pending: total - completed, targetMinutes, completedMinutes, completionPercent: total ? Math.round(completed / total * 100) : 0 };
 }
 function dateKey(date = new Date()) {
-  const d = new Date(date);
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date(date));
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return values.year + '-' + values.month + '-' + values.day;
 }
 function streakFromDateKeys(keys, today = dateKey()) {
   const set = new Set(keys);
   let streak = 0;
-  const cursor = new Date(today + 'T12:00:00');
+  const cursor = new Date(today + 'T12:00:00Z');
   while (set.has(dateKey(cursor))) {
     streak++;
-    cursor.setDate(cursor.getDate() - 1);
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
   }
   return streak;
 }
