@@ -70,7 +70,7 @@ function normalizeQuestion(raw, sourceName) {
     examYear: Number.isInteger(Number(raw.examYear || raw.exam_year)) ? Number(raw.examYear || raw.exam_year) : null,
     paperName: clean(raw.paperName || raw.paper_name || ''),
     pyqSourceUrl: clean(raw.pyqSourceUrl || raw.pyq_source_url || ''),
-    questionLanguage: clean(raw.questionLanguage || raw.question_language || ''),
+    questionLanguage: ['hi', 'en', 'both'].includes(clean(raw.questionLanguage || raw.question_language || '').toLowerCase()) ? clean(raw.questionLanguage || raw.question_language).toLowerCase() : '',
     translation: clean(raw.translation || ''),
     isPreviousYearQuestion: raw.isPreviousYearQuestion === true || raw.is_previous_year_question === true,
     sourceId: clean(raw.id || raw.sourceId || ''),
