@@ -170,6 +170,7 @@ app.use('/api/automation', require('./routes/automation'));
 // Student accounts and authenticated learning history
 app.use('/api/students', require('./routes/students'));
 app.use('/api/student-learning', require('./routes/studentLearning'));
+app.use('/api/student-tools', require('./routes/studentTools'));
 
 // Government exam learning modules
 app.use('/api/current-affairs', require('./routes/currentAffairs'));
