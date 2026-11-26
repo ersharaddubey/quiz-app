@@ -13,6 +13,7 @@ import MockTestsScreen from './src/screens/MockTestsScreen';
 import MockTestAttemptScreen from './src/screens/MockTestAttemptScreen';
 import PYQBankScreen from './src/screens/PYQBankScreen';
 import StudentHubScreen from './src/screens/StudentHubScreen';
+import GovernmentStudyScreen from './src/screens/GovernmentStudyScreen';
 import { restoreStudentSession } from './src/services/api';
 import { LanguageProvider } from './src/context/LanguageContext';
 
@@ -61,6 +62,7 @@ export default function App() {
           <Stack.Screen name="MockTests" component={MockTestsScreen} />
           <Stack.Screen name="MockTestAttempt" component={MockTestAttemptScreen} />
           <Stack.Screen name="StudentHub" component={StudentHubScreen} />
+          <Stack.Screen name="GovernmentStudy" component={GovernmentStudyScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
