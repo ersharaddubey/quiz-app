@@ -42,3 +42,18 @@ test('counts a deleted/missing question as unanswered rather than leaking or cra
   assert.equal(result.correct, 1);
   assert.equal(result.unanswered, 2);
 });
+
+test('returns section-wise scores using the same negative-marking rules', () => {
+  const result = scoreMockTest({
+    questionIds, questions, answers: { q1: 1, q2: 3 },
+    sections: [
+      { title: 'General Studies', questionIds: ['q1', 'q2'] },
+      { title: 'Reasoning', questionIds: ['q3'] }
+    ],
+    marksPerQuestion: 2, negativeMarksPerWrong: 0.5
+  });
+  assert.deepEqual(result.sections, [
+    { title: 'General Studies', correct: 1, wrong: 1, unanswered: 0, score: 1.5, maxMarks: 4 },
+    { title: 'Reasoning', correct: 0, wrong: 0, unanswered: 1, score: 0, maxMarks: 2 }
+  ]);
+});
