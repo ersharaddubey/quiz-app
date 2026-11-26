@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,10 +13,32 @@ import MockTestsScreen from './src/screens/MockTestsScreen';
 import MockTestAttemptScreen from './src/screens/MockTestAttemptScreen';
 import PYQBankScreen from './src/screens/PYQBankScreen';
 import StudentHubScreen from './src/screens/StudentHubScreen';
+import { restoreStudentSession } from './src/services/api';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const [sessionReady, setSessionReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    restoreStudentSession().finally(() => {
+      if (mounted) setSessionReady(true);
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  if (!sessionReady) {
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: '#060B18', alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color="#00E5FF" size="large" />
+          <Text style={{ color: '#8BA3C7', marginTop: 12 }}>Restoring your secure session…</Text>
+        </View>
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
