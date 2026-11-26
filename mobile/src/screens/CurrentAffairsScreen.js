@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import API from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 const monthLabel = date => date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 export default function CurrentAffairsScreen() {
+  const { t } = useLanguage();
   const [items, setItems] = useState([]);
   const [language, setLanguage] = useState('en');
   const [period, setPeriod] = useState('daily');
@@ -29,26 +31,26 @@ export default function CurrentAffairsScreen() {
   };
   useEffect(() => { load(); }, [language, period, monthOffset]);
   return <View style={s.page}>
-    <Text style={s.title}>Current Affairs</Text>
+    <Text style={s.title}>{t('currentAffairs')}</Text>
     <View style={s.row}>
-      {['daily','monthly'].map(v => <TouchableOpacity key={v} onPress={() => setPeriod(v)} style={[s.lang, period===v && s.active]}><Text style={s.langText}>{v==='daily'?'Daily':'Monthly'}</Text></TouchableOpacity>)}
+      {['daily','monthly'].map(v => <TouchableOpacity key={v} onPress={() => setPeriod(v)} style={[s.lang, period===v && s.active]}><Text style={s.langText}>{v==='daily'?t('daily'):t('monthly')}</Text></TouchableOpacity>)}
       {['en','hi'].map(v => <TouchableOpacity key={v} onPress={() => setLanguage(v)} style={[s.lang, language===v && s.active]}><Text style={s.langText}>{v==='en'?'English':'हिन्दी'}</Text></TouchableOpacity>)}
     </View>
     {period === 'monthly' && <View style={s.monthRow}>
-      <TouchableOpacity disabled={monthOffset>=11} onPress={() => setMonthOffset(v=>v+1)}><Text style={s.monthBtn}>‹ Older</Text></TouchableOpacity>
+      <TouchableOpacity disabled={monthOffset>=11} onPress={() => setMonthOffset(v=>v+1)}><Text style={s.monthBtn}>{t('older')}</Text></TouchableOpacity>
       <Text style={s.monthText}>{monthLabel(selectedMonth)}</Text>
-      <TouchableOpacity disabled={monthOffset===0} onPress={() => setMonthOffset(v=>Math.max(0,v-1))}><Text style={s.monthBtn}>Newer ›</Text></TouchableOpacity>
+      <TouchableOpacity disabled={monthOffset===0} onPress={() => setMonthOffset(v=>Math.max(0,v-1))}><Text style={s.monthBtn}>{t('newer')}</Text></TouchableOpacity>
     </View>}
     {loading ? <ActivityIndicator color="#00E5FF" /> : <ScrollView>
       {!!error && <Text style={s.muted}>{error}</Text>}
-      {!error && !items.length && <Text style={s.muted}>No published current-affairs entries found for this period and language.</Text>}
+      {!error && !items.length && <Text style={s.muted}>{t('noCurrentAffairs')}</Text>}
       {items.map(item => <View key={item._id} style={s.card}>
         <Text style={s.topic}>{item.topic} · {new Date(item.sourceDate).toLocaleDateString()}</Text>
         <Text style={s.heading}>{item.title}</Text>
         {!!item.summary && <Text style={s.body}>{item.summary}</Text>}
         <Text style={s.question}>{item.question}</Text>
         {item.options.map((o,i)=><Text key={i} style={s.option}>{String.fromCharCode(65+i)}. {o}</Text>)}
-        {!!item.sourceUrl && <Text style={s.source}>Source: {item.sourceName || 'Reference'} · {item.sourceUrl}</Text>}
+        {!!item.sourceUrl && <Text style={s.source}>{t('source')}: {item.sourceName || 'Reference'} · {item.sourceUrl}</Text>}
       </View>)}
     </ScrollView>}
   </View>;
