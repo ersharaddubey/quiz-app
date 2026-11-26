@@ -30,3 +30,20 @@ jobs:
             -H "x-current-affairs-secret: ${CURRENT_AFFAIRS_IMPORT_SECRET}" \
             -H "Content-Type: application/json" \
             -d '{"trigger":"github-actions","reviewRequired":true}'
+
+      - name: Trigger official job alerts draft importer
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          JOB_ALERT_IMPORT_SECRET: ${{ secrets.JOB_ALERT_IMPORT_SECRET }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BACKEND_URL:-}" || -z "${JOB_ALERT_IMPORT_SECRET:-}" ]]; then
+            echo "Set BACKEND_URL and JOB_ALERT_IMPORT_SECRET in GitHub Actions secrets."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            --max-time 840 \
+            -X POST "${BACKEND_URL%/}/api/automation/job-alerts/import" \
+            -H "x-job-alert-import-secret: ${JOB_ALERT_IMPORT_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d '{"trigger":"github-actions","reviewRequired":true}'
