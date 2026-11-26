@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import API from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function MockTestsScreen({navigation}) {
+  const { t } = useLanguage();
   const { t } = useLanguage();
   const [items,setItems]=useState([]); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
   useEffect(()=>{API.get('/mock-tests').then(r=>setItems(r.data||[])).catch(e=>setError(e.response?.data?.message||'Mock tests could not be loaded')).finally(()=>setLoading(false));},[]);
