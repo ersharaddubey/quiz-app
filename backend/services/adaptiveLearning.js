@@ -19,8 +19,8 @@ function buildAdaptiveRecommendations({ attempts = [], questions = [], now = new
       else {
         row.wrong++;
         const dueAt = new Date(new Date(attempt.submittedAt || now).getTime() + 24 * 60 * 60 * 1000);
-        const previous = revisionById.get(id);
-        if (!previous || dueAt < previous.dueAt) revisionById.set(id, { questionId: id, subject, difficulty: question.difficulty || 'Medium', dueAt });
+        // Reset the cooling-off window after every new incorrect answer.
+        revisionById.set(id, { questionId: id, subject, difficulty: question.difficulty || 'Medium', dueAt });
       }
     }
   }
