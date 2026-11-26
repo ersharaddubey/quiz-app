@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import API from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 const monthLabel = date => date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 export default function CurrentAffairsScreen() {
+  const { t } = useLanguage();
   const { t } = useLanguage();
   const [items, setItems] = useState([]);
   const [language, setLanguage] = useState('en');
