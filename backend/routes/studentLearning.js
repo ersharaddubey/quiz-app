@@ -73,12 +73,18 @@ router.get('/leaderboard', async (req, res) => {
     const rows = await MockTestAttempt.aggregate([
       { $match: { submittedAt: { $gte: new Date(Date.now() - 7 * 86400000) } } },
       { $group: { _id: '$student', points: { $sum: '$score' }, attempts: { $sum: 1 }, accuracy: { $avg: '$accuracy' } } },
-      { $sort: { points: -1, accuracy: -1, attempts: -1 } }, { $limit: limit },
+      { $sort: { points: -1, accuracy: -1, attempts: -1, _id: 1 } },
       { $lookup: { from: 'students', localField: '_id', foreignField: '_id', as: 'student' } },
       { $unwind: '$student' },
       { $project: { studentId: '$_id', name: '$student.name', points: 1, attempts: 1, accuracy: { $round: ['$accuracy', 1] } } }
     ]);
-    res.json({ period: 'weekly', rankings: rows });
+    const totalParticipants = rows.length;
+    const rankings = rows.slice(0, limit).map((row, index) => ({
+      ...row,
+      rank: index + 1,
+      percentile: totalParticipants <= 1 ? 100 : Math.round((totalParticipants - index - 1) / (totalParticipants - 1) * 1000) / 10
+    }));
+    res.json({ period: 'weekly', totalParticipants, rankings });
   } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
