@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import API from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
-import { useLanguage } from '../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 const SLIDE_W = width - 48;
@@ -61,7 +60,6 @@ const FALLBACK_SUBJECTS = [
 ];
 
 export default function HomeScreen({ navigation }) {
-  const { language, setLanguage, t } = useLanguage();
   const { language, setLanguage, t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -188,7 +186,6 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={{ paddingBottom: 56 }}
       >
         <View style={styles.hero}>
-          <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 10 }}><TouchableOpacity onPress={() => setLanguage(language === "en" ? "hi" : "en")} style={{ borderWidth: 1, borderColor: C.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}><Text style={{ color: C.cyan, fontWeight: "700" }}>{t("language")}</Text></TouchableOpacity></View>
           <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 10 }}><TouchableOpacity onPress={() => setLanguage(language === "en" ? "hi" : "en")} style={{ borderWidth: 1, borderColor: C.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}><Text style={{ color: C.cyan, fontWeight: "700" }}>{t("language")}</Text></TouchableOpacity></View>
           <View style={styles.heroGlow} />
           <Text style={styles.heroBadge}>INDIA GOVT EXAMS</Text>
