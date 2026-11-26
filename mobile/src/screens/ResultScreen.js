@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Platform,
 } from 'react-native';
@@ -15,6 +16,7 @@ const C = {
 };
 
 export default function ResultScreen({ route, navigation }) {
+  const { t } = useLanguage();
   const { score, total, answers, title } = route.params;
   const percent = Math.round((score / total) * 100);
 
@@ -37,7 +39,7 @@ export default function ResultScreen({ route, navigation }) {
           <Text style={styles.msg}>{msg}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Review Answers</Text>
+        <Text style={styles.sectionTitle}>{t('reviewAnswers')}</Text>
         {answers.map((a, i) => (
           <View
             key={i}
@@ -55,11 +57,11 @@ export default function ResultScreen({ route, navigation }) {
                   fontSize: 12,
                 }}
               >
-                {a.isCorrect ? '✓ Correct' : '✗ Wrong'}
+                {a.isCorrect ? '✓ ' + t('correct') : '✗ ' + t('wrong')}
               </Text>
             </View>
             <Text style={styles.reviewQ}>{a.question}</Text>
-            <Text style={styles.reviewA}>Your answer: {a.options[a.selected]}</Text>
+            <Text style={styles.reviewA}>{t('yourAnswer')}: {a.options[a.selected]}</Text>
             {!a.isCorrect && (
               <Text style={{ color: C.correct, fontSize: 12, marginTop: 4 }}>
                 Correct: {a.options[a.correct]}
@@ -73,7 +75,7 @@ export default function ResultScreen({ route, navigation }) {
           onPress={() => navigation.navigate('Home')}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>← Back to Home</Text>
+          <Text style={styles.btnText}>{t('backHome')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

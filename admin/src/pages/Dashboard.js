@@ -22,14 +22,14 @@ function Dashboard({ onLogout }) {
 
   // Forms
   const [qForm, setQForm] = useState({
-    question: '',
-    options: ['', '', '', ''],
+    question: '', questionHi: '',
+    options: ['', '', '', ''], optionsHi: ['', '', '', ''],
     correctAnswer: 0,
     category: '',
     subject: '',
     syllabus: '',
     difficulty: 'Medium',
-    explanation: '',
+    explanation: '', explanationHi: '',
     examName: '', examYear: '', paperName: '', pyqSourceUrl: '', isPreviousYearQuestion: false, verified: false
   });
   const [catForm, setCatForm] = useState({ name: '', description: '', icon: '📚', order: 0 });
@@ -117,7 +117,7 @@ function Dashboard({ onLogout }) {
   const manageModuleRecord = async (resource, item = null) => {
     const defaults = {
       'current-affairs': { title: 'Headline', question: 'Question text', options: ['Option A','Option B','Option C','Option D'], correctAnswer: 0, sourceDate: new Date().toISOString(), language: 'en', topic: 'General', sourceName: '', sourceUrl: '', status: 'draft' },
-      'job-alerts': { title: 'Recruitment title', organization: 'Recruiting body', officialUrl: 'https://', applicationStart: null, applicationEnd: null, vacancies: null, status: 'draft' },
+      'job-alerts': { title: 'Recruitment title', titleHi: '', organization: 'Recruiting body', organizationHi: '', description: '', descriptionHi: '', officialUrl: 'https://', applicationStart: null, applicationEnd: null, vacancies: null, status: 'draft' },
       'mock-tests': { title: 'Mock test title', category: categories[0]?._id || '', questions: [], durationMinutes: 60, marksPerQuestion: 1, negativeMarksPerWrong: 0, isPublished: false }
     };
     const raw = window.prompt('Enter complete JSON record. Required fields are shown in the example.', JSON.stringify(item || defaults[resource], null, 2));
@@ -311,27 +311,27 @@ function Dashboard({ onLogout }) {
     setEditing(item?._id || null);
     if (item) {
       setQForm({
-        question: item.question,
-        options: [...item.options],
+        question: item.question, questionHi: item.questionHi || '',
+        options: [...item.options], optionsHi: Array.isArray(item.optionsHi) && item.optionsHi.length === item.options.length ? [...item.optionsHi] : item.options.map(() => ''),
         correctAnswer: item.correctAnswer,
         category: item.category?._id || item.category || '',
         subject: item.subject?._id || item.subject || '',
         syllabus: item.syllabus?._id || item.syllabus || '',
         difficulty: item.difficulty || 'Medium',
-        explanation: item.explanation || '',
+        explanation: item.explanation || '', explanationHi: item.explanationHi || '',
         examName: item.examName || '', examYear: item.examYear || '', paperName: item.paperName || '', pyqSourceUrl: item.pyqSourceUrl || '',
         isPreviousYearQuestion: Boolean(item.isPreviousYearQuestion), verified: Boolean(item.verified)
       });
     } else {
       setQForm({
-        question: '',
-        options: ['', '', '', ''],
+        question: '', questionHi: '',
+        options: ['', '', '', ''], optionsHi: ['', '', '', ''],
         correctAnswer: 0,
         category: '',
         subject: '',
         syllabus: '',
         difficulty: 'Medium',
-        explanation: '',
+        explanation: '', explanationHi: '',
         examName: '', examYear: '', paperName: '', pyqSourceUrl: '', isPreviousYearQuestion: false, verified: false
       });
     }
@@ -346,7 +346,7 @@ function Dashboard({ onLogout }) {
 
   const addOption = () => {
     if (qForm.options.length < 6) {
-      setQForm({ ...qForm, options: [...qForm.options, ''] });
+      setQForm({ ...qForm, options: [...qForm.options, ''], optionsHi: [...(qForm.optionsHi || []), ''] });
     }
   };
 
@@ -356,7 +356,8 @@ function Dashboard({ onLogout }) {
       let correct = qForm.correctAnswer;
       if (correct === index) correct = 0;
       else if (correct > index) correct--;
-      setQForm({ ...qForm, options: newOptions, correctAnswer: correct });
+      const newHindiOptions = (qForm.optionsHi || []).filter((_, i) => i !== index);
+      setQForm({ ...qForm, options: newOptions, optionsHi: newHindiOptions, correctAnswer: correct });
     }
   };
 
@@ -367,6 +368,12 @@ function Dashboard({ onLogout }) {
       showMsg('At least 2 options required', true);
       return;
     }
+    const hindiOptions = (qForm.optionsHi || []).map(value => String(value || '').trim());
+    const filledHindiOptions = hindiOptions.filter(Boolean);
+    if (filledHindiOptions.length > 0 && filledHindiOptions.length !== filledOptions.length) {
+      showMsg('Fill every Hindi option or leave all Hindi options blank.', true);
+      return;
+    }
     if (!qForm.question.trim() || !qForm.category || !qForm.subject) {
       showMsg('Question, Category and Subject are required', true);
       return;
@@ -374,6 +381,7 @@ function Dashboard({ onLogout }) {
     const payload = {
       ...qForm,
       options: filledOptions,
+      optionsHi: filledHindiOptions.length ? hindiOptions : [],
       correctAnswer: Math.min(qForm.correctAnswer, filledOptions.length - 1),
       syllabus: qForm.syllabus || undefined,
       examName: qForm.examName,
@@ -953,6 +961,8 @@ function Dashboard({ onLogout }) {
                 <div className="form-group">
                   <label>Question *</label>
                   <textarea rows={3} value={qForm.question} onChange={e => setQForm({ ...qForm, question: e.target.value })} required />
+                  <label>Hindi translation (optional)</label>
+                  <textarea rows={3} value={qForm.questionHi || ''} onChange={e => setQForm({ ...qForm, questionHi: e.target.value })} placeholder="प्रश्न का हिंदी अनुवाद" />
                 </div>
                 <div className="form-group">
                   <label>Category *</label>
@@ -986,6 +996,8 @@ function Dashboard({ onLogout }) {
                       )}
                     </div>
                   ))}
+                  <label style={{ display: 'block', marginTop: 12 }}>Hindi options (optional — fill all or leave blank)</label>
+                  {qForm.options.map((opt, i) => <input key={'hi-' + i} value={(qForm.optionsHi || [])[i] || ''} onChange={e => setQForm({ ...qForm, optionsHi: (qForm.optionsHi || []).map((value, index) => index === i ? e.target.value : value) })} placeholder={'Hindi option ' + (i + 1)} style={{ marginTop: 6 }} />)}
                   {qForm.options.length < 6 && (
                     <button type="button" className="btn btn-outline" style={{ marginTop: 8 }} onClick={addOption}>+ Add Option</button>
                   )}
@@ -1010,6 +1022,8 @@ function Dashboard({ onLogout }) {
                 <div className="form-group">
                   <label>Explanation (optional)</label>
                   <textarea rows={2} value={qForm.explanation} onChange={e => setQForm({ ...qForm, explanation: e.target.value })} />
+                  <label>Hindi explanation (optional)</label>
+                  <textarea rows={2} value={qForm.explanationHi || ''} onChange={e => setQForm({ ...qForm, explanationHi: e.target.value })} />
                 </div>
                 <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
                   <button type="submit" className="btn btn-primary">Save</button>

@@ -45,4 +45,32 @@ router.post('/run-now', auth, async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
+
+router.post('/current-affairs/import', async (req, res) => {
+  if (!secretMatches(req.header('x-current-affairs-secret'), process.env.CURRENT_AFFAIRS_IMPORT_SECRET)) {
+    return res.status(401).json({ message: 'Unauthorized current affairs import request' });
+  }
+  try {
+    const { importCurrentAffairs } = require('../services/currentAffairsImporter');
+    const result = await importCurrentAffairs();
+    res.status(result.errors.length && !result.drafts ? 502 : 200).json(result);
+  } catch (error) {
+    res.status(503).json({ message: error.message });
+  }
+});
+
+
+router.post('/job-alerts/import', async (req, res) => {
+  if (!secretMatches(req.header('x-job-alert-import-secret'), process.env.JOB_ALERT_IMPORT_SECRET)) {
+    return res.status(401).json({ message: 'Unauthorized job-alert import request' });
+  }
+  try {
+    const { importJobAlertDrafts } = require('../services/jobAlertImporter');
+    const result = await importJobAlertDrafts();
+    res.status(result.errors.length && !result.drafts ? 502 : 200).json(result);
+  } catch (error) {
+    res.status(503).json({ message: error.message });
+  }
+});
+
 module.exports = router;

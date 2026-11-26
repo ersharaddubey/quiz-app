@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const questionSchema = new mongoose.Schema({
   question: { type: String, required: true, trim: true },
+  questionHi: { type: String, default: '', trim: true },
   options: [{ type: String, required: true }],
+  optionsHi: [{ type: String }],
   correctAnswer: { type: Number, required: true }, // zero-based option index
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
@@ -11,6 +13,7 @@ const questionSchema = new mongoose.Schema({
   subjectName: { type: String, default: '' },
   difficulty: { type: String, enum: ['Easy', 'Medium', 'Hard'], default: 'Medium' },
   explanation: { type: String, default: '' },
+  explanationHi: { type: String, default: '' },
   // Import metadata is optional so all existing/manual question records remain valid.
   source: { type: String, default: 'admin' },
   sourceId: { type: String, default: '' },

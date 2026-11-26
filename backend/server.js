@@ -167,6 +167,11 @@ app.use('/api/upload', require('./routes/upload'));
 // Scheduled question imports (GitHub Actions -> secured backend endpoint)
 app.use('/api/automation', require('./routes/automation'));
 
+// Student accounts and authenticated learning history
+app.use('/api/students', require('./routes/students'));
+app.use('/api/student-learning', require('./routes/studentLearning'));
+app.use('/api/student-tools', require('./routes/studentTools'));
+
 // Government exam learning modules
 app.use('/api/current-affairs', require('./routes/currentAffairs'));
 app.use('/api/job-alerts', require('./routes/jobAlerts'));

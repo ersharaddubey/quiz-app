@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Platform,
 } from 'react-native';
@@ -16,6 +17,7 @@ const C = {
 };
 
 export default function QuizScreen({ route, navigation }) {
+  const { t, language } = useLanguage();
   const { questions, title } = route.params;
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -23,6 +25,8 @@ export default function QuizScreen({ route, navigation }) {
   const [showFeedback, setShowFeedback] = useState(false);
 
   const q = questions[current];
+  const questionText = language === 'hi' && q.questionHi ? q.questionHi : q.question;
+  const optionTexts = language === 'hi' && Array.isArray(q.optionsHi) && q.optionsHi.length === q.options.length ? q.optionsHi : q.options;
   const progress = ((current + 1) / questions.length) * 100;
 
   const handleSelect = (i) => {
@@ -39,8 +43,8 @@ export default function QuizScreen({ route, navigation }) {
         selected,
         correct: q.correctAnswer,
         isCorrect,
-        question: q.question,
-        options: q.options,
+        question: questionText,
+        options: optionTexts,
       },
     ];
     setAnswers(newAnswers);
@@ -72,11 +76,11 @@ export default function QuizScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.qCard}>
-          <Text style={styles.qLabel}>QUESTION {current + 1}</Text>
-          <Text style={styles.qText}>{q.question}</Text>
+          <Text style={styles.qLabel}>{t('question')} {current + 1}</Text>
+          <Text style={styles.qText}>{questionText}</Text>
         </View>
 
-        {q.options.map((opt, i) => {
+        {optionTexts.map((opt, i) => {
           let optStyle = styles.opt;
           let textStyle = styles.optText;
 
@@ -123,9 +127,9 @@ export default function QuizScreen({ route, navigation }) {
           <Text style={styles.nextText}>
             {showFeedback
               ? current + 1 === questions.length
-                ? 'Finish Quiz'
-                : 'Next Question →'
-              : 'Check Answer'}
+                ? t('finishQuiz')
+                : t('nextQuestion')
+              : t('checkAnswer')}
           </Text>
         </TouchableOpacity>
       </ScrollView>
