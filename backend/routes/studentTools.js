@@ -131,4 +131,38 @@ router.post('/assistant/explain', async (req, res) => {
   } catch (error) { res.status(502).json({ message: error.name === 'TimeoutError' ? 'AI tutor timed out. Please retry.' : error.message }); }
 });
 
+
+router.post('/assistant/practice', async (req, res) => {
+  try {
+    const topic = String(req.body.topic || '').trim();
+    const language = req.body.language === 'hi' ? 'Hindi' : 'English';
+    if (!topic || topic.length > 200) return res.status(400).json({ message: 'A topic up to 200 characters is required' });
+    const apiKey = process.env.QUESTION_AI_API_KEY || process.env.OPENAI_API_KEY;
+    if (!apiKey) return res.status(503).json({ message: 'AI Study Assistant is not configured yet. Set QUESTION_AI_API_KEY on the backend.' });
+    const endpoint = process.env.QUESTION_AI_API_URL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions';
+    const model = process.env.QUESTION_AI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model, temperature: 0.35, max_tokens: 1800,
+        messages: [
+          { role: 'system', content: 'Create exactly 5 original Indian government-exam practice MCQs on the requested topic. Reply in ' + language + '. Return JSON only: {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswer":0,"explanation":"..."}]}. Four options each, zero-based correctAnswer, factual and suitable for SSC/UPSC/Railway/Banking. Never label generated questions as previous-year questions.' },
+          { role: 'user', content: 'Topic: ' + topic }
+        ]
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) return res.status(response.status === 429 ? 503 : 502).json({ message: payload.error?.message || 'AI provider request failed' });
+    const raw = payload.choices?.[0]?.message?.content || '';
+    const parsed = JSON.parse(raw.replace(/^\\s*\\x60{3}(?:json)?/i, '').replace(/\\x60{3}\\s*$/i, '').trim());
+    const questions = parsed.questions;
+    if (!Array.isArray(questions) || questions.length !== 5 || questions.some(q => !q.question || !Array.isArray(q.options) || q.options.length !== 4 || !Number.isInteger(q.correctAnswer) || q.correctAnswer < 0 || q.correctAnswer > 3)) {
+      return res.status(502).json({ message: 'AI provider returned an invalid practice set' });
+    }
+    res.json({ topic, questions, generated: true, pyq: false });
+  } catch (error) { res.status(502).json({ message: error.name === 'TimeoutError' ? 'AI practice generation timed out' : error.message }); }
+});
+
 module.exports = router;
