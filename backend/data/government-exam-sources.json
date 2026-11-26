@@ -1,0 +1,1037 @@
+{
+  "schemaVersion": 1,
+  "registryPurpose": "Official discovery directory for India government exam data. A portal entry is not proof that an endpoint is machine-readable or that its content may be republished.",
+  "checkedOn": "2026-11-26",
+  "refreshPolicyHours": 6,
+  "reviewPolicy": "Only public, accessible and licence-permitted content may be ingested. Keep source URL, publication date, retrieval timestamp and content hash. Official notices are drafts until reviewed. Never infer an answer key or call AI/trivia output a PYQ.",
+  "nationalAuthorities": [
+    {
+      "id": "ssc",
+      "name": "Staff Selection Commission",
+      "portal": "https://ssc.gov.in/",
+      "examFamilies": [
+        "CGL",
+        "CHSL",
+        "MTS",
+        "GD",
+        "CPO",
+        "JE",
+        "Stenographer",
+        "Selection Post",
+        "JHT"
+      ],
+      "dataTypes": [
+        "notifications",
+        "calendar",
+        "syllabus",
+        "vacancies",
+        "admit_cards",
+        "answer_keys",
+        "response_sheets",
+        "question_papers",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "upsc",
+      "name": "Union Public Service Commission",
+      "portal": "https://upsc.gov.in/",
+      "examFamilies": [
+        "CSE",
+        "IFS",
+        "NDA",
+        "CDS",
+        "CAPF",
+        "ESE",
+        "CMS",
+        "EPFO",
+        "Recruitment Tests"
+      ],
+      "dataTypes": [
+        "notifications",
+        "calendar",
+        "syllabus",
+        "question_papers",
+        "answer_keys",
+        "admit_cards",
+        "results",
+        "cutoffs",
+        "recruitment_advertisements"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "rrb",
+      "name": "Railway Recruitment Boards",
+      "portal": "https://www.rrbcdg.gov.in/",
+      "examFamilies": [
+        "NTPC",
+        "Group D",
+        "ALP",
+        "Technician",
+        "JE",
+        "RPF"
+      ],
+      "dataTypes": [
+        "notifications",
+        "calendar",
+        "syllabus",
+        "vacancies",
+        "admit_cards",
+        "response_sheets",
+        "answer_keys",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "ibps",
+      "name": "Institute of Banking Personnel Selection",
+      "portal": "https://www.ibps.in/",
+      "examFamilies": [
+        "PO",
+        "Clerk",
+        "SO",
+        "RRB Officer",
+        "RRB Office Assistant"
+      ],
+      "dataTypes": [
+        "notifications",
+        "calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "scorecards"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null,
+      "contentNote": "Do not assume official full question papers or answer keys are published; label independently sourced memory-based sets."
+    },
+    {
+      "id": "sbi",
+      "name": "State Bank of India Careers",
+      "portal": "https://sbi.co.in/web/careers",
+      "examFamilies": [
+        "PO",
+        "Clerk",
+        "SO"
+      ],
+      "dataTypes": [
+        "notifications",
+        "admit_cards",
+        "results",
+        "scorecards"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "rbi",
+      "name": "Reserve Bank of India Opportunities",
+      "portal": "https://opportunities.rbi.org.in/",
+      "examFamilies": [
+        "Grade B",
+        "Assistant",
+        "Office Attendant"
+      ],
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "nta",
+      "name": "National Testing Agency",
+      "portal": "https://www.nta.ac.in/",
+      "examFamilies": [
+        "UGC NET",
+        "CUET",
+        "Other NTA examinations"
+      ],
+      "dataTypes": [
+        "public_notices",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "answer_keys",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "ctet",
+      "name": "Central Teacher Eligibility Test (CBSE)",
+      "portal": "https://ctet.nic.in/",
+      "examFamilies": [
+        "CTET"
+      ],
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "information_bulletin",
+        "admit_cards",
+        "answer_keys",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "kvs",
+      "name": "Kendriya Vidyalaya Sangathan",
+      "portal": "https://kvsangathan.nic.in/",
+      "examFamilies": [
+        "KVS recruitment"
+      ],
+      "dataTypes": [
+        "recruitment_notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "nvs",
+      "name": "Navodaya Vidyalaya Samiti",
+      "portal": "https://navodaya.gov.in/",
+      "examFamilies": [
+        "NVS recruitment"
+      ],
+      "dataTypes": [
+        "recruitment_notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "afcat",
+      "name": "Indian Air Force AFCAT",
+      "portal": "https://afcat.cdac.in/",
+      "examFamilies": [
+        "AFCAT",
+        "technical and non-technical entries"
+      ],
+      "dataTypes": [
+        "notifications",
+        "calendar",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "join-indian-army",
+      "name": "Join Indian Army",
+      "portal": "https://joinindianarmy.nic.in/",
+      "examFamilies": [
+        "Agniveer",
+        "Officer entries"
+      ],
+      "dataTypes": [
+        "notifications",
+        "eligibility",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "join-indian-navy",
+      "name": "Join Indian Navy",
+      "portal": "https://joinindiannavy.gov.in/",
+      "examFamilies": [
+        "Agniveer",
+        "INET",
+        "Officer entries"
+      ],
+      "dataTypes": [
+        "notifications",
+        "eligibility",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "pib",
+      "name": "Press Information Bureau",
+      "portal": "https://pib.gov.in/",
+      "examFamilies": [
+        "Current Affairs"
+      ],
+      "dataTypes": [
+        "government_announcements",
+        "schemes",
+        "appointments",
+        "economy",
+        "science",
+        "defence",
+        "awards"
+      ],
+      "ingestion": "rss_or_portal_after_feed_validation",
+      "feedUrl": null
+    },
+    {
+      "id": "india-gov",
+      "name": "National Portal of India",
+      "portal": "https://www.india.gov.in/",
+      "examFamilies": [
+        "Government schemes and institutions"
+      ],
+      "dataTypes": [
+        "schemes",
+        "ministries",
+        "official_directory"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "employment-news",
+      "name": "Employment News",
+      "portal": "https://www.employmentnews.gov.in/",
+      "examFamilies": [
+        "Central and public sector recruitment"
+      ],
+      "dataTypes": [
+        "recruitment_notifications"
+      ],
+      "ingestion": "licence_and_feed_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "ugc",
+      "name": "University Grants Commission",
+      "portal": "https://www.ugc.gov.in/",
+      "examFamilies": [
+        "UGC NET reference and higher education"
+      ],
+      "dataTypes": [
+        "notices",
+        "regulations",
+        "higher_education"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "nabard",
+      "name": "NABARD",
+      "portal": "https://www.nabard.org/",
+      "examFamilies": [
+        "Grade A",
+        "Grade B",
+        "Development Assistant"
+      ],
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "id": "sebi",
+      "name": "Securities and Exchange Board of India",
+      "portal": "https://www.sebi.gov.in/",
+      "examFamilies": [
+        "Grade A"
+      ],
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    }
+  ],
+  "statePublicServiceCommissions": [
+    {
+      "region": "Andhra Pradesh",
+      "body": "APPSC",
+      "portal": "https://psc.ap.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Arunachal Pradesh",
+      "body": "APPSC",
+      "portal": "https://appsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Assam",
+      "body": "APSC",
+      "portal": "https://apsc.nic.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Bihar",
+      "body": "BPSC",
+      "portal": "https://bpsc.bihar.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Chhattisgarh",
+      "body": "CGPSC",
+      "portal": "https://psc.cg.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Goa",
+      "body": "Goa PSC",
+      "portal": "https://gpsc.goa.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Gujarat",
+      "body": "GPSC",
+      "portal": "https://gpsc.gujarat.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Haryana",
+      "body": "HPSC",
+      "portal": "https://hpsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Himachal Pradesh",
+      "body": "HPPSC",
+      "portal": "https://hppsc.hp.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Jharkhand",
+      "body": "JPSC",
+      "portal": "https://www.jpsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Karnataka",
+      "body": "KPSC",
+      "portal": "https://kpsc.kar.nic.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Kerala",
+      "body": "Kerala PSC",
+      "portal": "https://www.keralapsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Madhya Pradesh",
+      "body": "MPPSC",
+      "portal": "https://mppsc.mp.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Maharashtra",
+      "body": "MPSC",
+      "portal": "https://mpsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Manipur",
+      "body": "MPSC Manipur",
+      "portal": "https://mpscmanipur.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Meghalaya",
+      "body": "Meghalaya PSC",
+      "portal": "https://mpsc.nic.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Mizoram",
+      "body": "Mizoram PSC",
+      "portal": "https://mpsc.mizoram.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Nagaland",
+      "body": "NPSC",
+      "portal": "https://npsc.nagaland.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Odisha",
+      "body": "OPSC",
+      "portal": "https://www.opsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Punjab",
+      "body": "PPSC",
+      "portal": "https://www.ppsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Rajasthan",
+      "body": "RPSC",
+      "portal": "https://rpsc.rajasthan.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Sikkim",
+      "body": "SPSC",
+      "portal": "https://spsc.sikkim.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Tamil Nadu",
+      "body": "TNPSC",
+      "portal": "https://www.tnpsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Telangana",
+      "body": "TGPSC",
+      "portal": "https://www.tgpsc.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Tripura",
+      "body": "TPSC",
+      "portal": "https://tpsc.tripura.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Uttar Pradesh",
+      "body": "UPPSC",
+      "portal": "https://uppsc.up.nic.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Uttarakhand",
+      "body": "UKPSC",
+      "portal": "https://psc.uk.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "West Bengal",
+      "body": "WBPSC",
+      "portal": "https://psc.wb.gov.in/",
+      "sourceType": "official_public_service_commission",
+      "dataTypes": [
+        "notifications",
+        "exam_calendar",
+        "syllabus",
+        "admit_cards",
+        "results",
+        "answer_keys",
+        "question_papers"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    }
+  ],
+  "unionTerritories": [
+    {
+      "region": "Andaman and Nicobar Islands",
+      "portal": "https://andaman.gov.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Chandigarh",
+      "portal": "https://chandigarh.gov.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Dadra and Nagar Haveli and Daman and Diu",
+      "portal": "https://dnh.gov.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Delhi",
+      "portal": "https://delhi.gov.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Jammu and Kashmir",
+      "portal": "https://jk.gov.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Ladakh",
+      "portal": "https://ladakh.nic.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Lakshadweep",
+      "portal": "https://lakshadweep.gov.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    },
+    {
+      "region": "Puducherry",
+      "portal": "https://py.gov.in/",
+      "recruitmentAuthority": "Check department-specific recruitment notice on official administration portal",
+      "dataTypes": [
+        "recruitment_notifications",
+        "admit_cards",
+        "results",
+        "departmental_exams"
+      ],
+      "ingestion": "portal_review_required",
+      "feedUrl": null
+    }
+  ],
+  "additionalStateRecruitmentBodies": [
+    {
+      "region": "Rajasthan",
+      "name": "Rajasthan Staff Selection Board",
+      "portal": "https://rssb.rajasthan.gov.in/",
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required"
+    },
+    {
+      "region": "Madhya Pradesh",
+      "name": "MP Employees Selection Board",
+      "portal": "https://esb.mp.gov.in/",
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required"
+    },
+    {
+      "region": "Uttar Pradesh",
+      "name": "UP Subordinate Services Selection Commission",
+      "portal": "https://upsssc.gov.in/",
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required"
+    },
+    {
+      "region": "Uttar Pradesh",
+      "name": "UP Police Recruitment and Promotion Board",
+      "portal": "https://uppbpb.gov.in/",
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required"
+    },
+    {
+      "region": "Delhi",
+      "name": "Delhi Subordinate Services Selection Board",
+      "portal": "https://dsssb.delhi.gov.in/",
+      "dataTypes": [
+        "notifications",
+        "syllabus",
+        "admit_cards",
+        "results"
+      ],
+      "ingestion": "portal_review_required"
+    }
+  ],
+  "commonQuestionSubjects": [
+    "Current Affairs",
+    "History",
+    "Geography",
+    "Indian Polity",
+    "Indian Economy",
+    "General Science",
+    "Environment",
+    "Computer Awareness",
+    "Quantitative Aptitude",
+    "Reasoning Ability",
+    "English Language",
+    "Hindi Language",
+    "Static General Knowledge"
+  ],
+  "excludedByDefault": [
+    "Paid coaching question banks without a licence",
+    "Copyrighted books/PDFs without permission",
+    "Candidate-specific login-only response sheets",
+    "Leaked or unreleased examination papers",
+    "Unofficial answer keys presented as official"
+  ]
+}
