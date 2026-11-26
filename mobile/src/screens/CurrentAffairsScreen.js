@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Linking, Alert } from 'react-native';
 import API from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 const monthLabel = date => date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
@@ -28,6 +28,14 @@ export default function CurrentAffairsScreen() {
     } catch (e) { setError(e.response?.data?.message || 'Current affairs could not be loaded'); }
     finally { setLoading(false); }
   };
+  const exportPdf = async () => {
+    const now = new Date();
+    const from = period === 'daily' ? new Date(now.getTime() - 7 * 86400000) : new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+    const to = period === 'daily' ? now : new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+    const base = String(API.defaults.baseURL || '').replace(/\\/api\\/?$/, '');
+    const url = base + '/api/current-affairs/export/print?language=' + encodeURIComponent(language) + '&from=' + encodeURIComponent(from.toISOString()) + '&to=' + encodeURIComponent(to.toISOString());
+    try { await Linking.openURL(url); } catch (error) { Alert.alert('Export unavailable', 'Could not open the print page. Please check your internet connection.'); }
+  };
   useEffect(() => { load(); }, [language, period, monthOffset]);
   return <View style={s.page}>
     <Text style={s.title}>{t('currentAffairs')}</Text>
@@ -40,6 +48,7 @@ export default function CurrentAffairsScreen() {
       <Text style={s.monthText}>{monthLabel(selectedMonth)}</Text>
       <TouchableOpacity disabled={monthOffset===0} onPress={() => setMonthOffset(v=>Math.max(0,v-1))}><Text style={s.monthBtn}>{t('newer')}</Text></TouchableOpacity>
     </View>}
+    <TouchableOpacity onPress={exportPdf} style={s.exportBtn}><Text style={s.exportText}>↓  {language === 'hi' ? 'PDF / प्रिंट डाउनलोड करें' : 'Export / Save as PDF'}</Text></TouchableOpacity>
     {loading ? <ActivityIndicator color="#00E5FF" /> : <ScrollView>
       {!!error && <Text style={s.muted}>{error}</Text>}
       {!error && !items.length && <Text style={s.muted}>{t('noCurrentAffairs')}</Text>}
@@ -54,4 +63,4 @@ export default function CurrentAffairsScreen() {
     </ScrollView>}
   </View>;
 }
-const s=StyleSheet.create({page:{flex:1,backgroundColor:'#060B18',padding:18,paddingTop:48},title:{color:'#F0F7FF',fontSize:24,fontWeight:'800',marginBottom:16},row:{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:12},lang:{padding:10,borderRadius:10,borderWidth:1,borderColor:'#345',minWidth:70,alignItems:'center'},active:{borderColor:'#00E5FF',backgroundColor:'#103044'},langText:{color:'#F0F7FF'},monthRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingVertical:12},monthBtn:{color:'#00E5FF',fontWeight:'700'},monthText:{color:'#F0F7FF',fontWeight:'700'},card:{backgroundColor:'#121C37',borderColor:'#23445A',borderWidth:1,borderRadius:14,padding:16,marginBottom:12},topic:{color:'#00E5FF',fontSize:11,marginBottom:8},heading:{color:'#F0F7FF',fontSize:17,fontWeight:'700',marginBottom:8},body:{color:'#AFC1DA',lineHeight:20,marginBottom:10},question:{color:'#F0F7FF',fontWeight:'700',marginBottom:8},option:{color:'#CFD9E8',paddingVertical:3},muted:{color:'#8BA3C7',marginVertical:12},source:{color:'#7F9BB8',fontSize:10,marginTop:10}});
+const s=StyleSheet.create({page:{flex:1,backgroundColor:'#060B18',padding:18,paddingTop:48},title:{color:'#F0F7FF',fontSize:24,fontWeight:'800',marginBottom:16},row:{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:12},lang:{padding:10,borderRadius:10,borderWidth:1,borderColor:'#345',minWidth:70,alignItems:'center'},active:{borderColor:'#00E5FF',backgroundColor:'#103044'},langText:{color:'#F0F7FF'},monthRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingVertical:12},monthBtn:{color:'#00E5FF',fontWeight:'700'},monthText:{color:'#F0F7FF',fontWeight:'700'},exportBtn:{backgroundColor:'#103044',borderColor:'#00E5FF',borderWidth:1,borderRadius:10,padding:12,alignItems:'center',marginBottom:12},exportText:{color:'#8DEEFF',fontWeight:'700'},card:{backgroundColor:'#121C37',borderColor:'#23445A',borderWidth:1,borderRadius:14,padding:16,marginBottom:12},topic:{color:'#00E5FF',fontSize:11,marginBottom:8},heading:{color:'#F0F7FF',fontSize:17,fontWeight:'700',marginBottom:8},body:{color:'#AFC1DA',lineHeight:20,marginBottom:10},question:{color:'#F0F7FF',fontWeight:'700',marginBottom:8},option:{color:'#CFD9E8',paddingVertical:3},muted:{color:'#8BA3C7',marginVertical:12},source:{color:'#7F9BB8',fontSize:10,marginTop:10}});
