@@ -107,10 +107,10 @@ router.post('/assistant/explain', async (req, res) => {
     const context = String(req.body.context || '').trim();
     const language = req.body.language === 'hi' ? 'Hindi' : 'English';
     if (!question || question.length > 3000 || context.length > 3000) return res.status(400).json({ message: 'Question and context are required (maximum 3000 characters each)' });
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.QUESTION_AI_API_KEY || process.env.OPENAI_API_KEY;
     if (!apiKey) return res.status(503).json({ message: 'AI Study Assistant is not configured yet. Set OPENAI_API_KEY on the backend.' });
-    const endpoint = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions';
-    const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    const endpoint = process.env.QUESTION_AI_API_URL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions';
+    const model = process.env.QUESTION_AI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
