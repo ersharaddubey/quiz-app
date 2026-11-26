@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, StyleSheet } from 'react-native';
 import API from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 export default function PYQBankScreen() {
+  const { t } = useLanguage();
   const { t } = useLanguage();
   const [examName,setExamName]=useState(''); const [examYear,setExamYear]=useState(''); const [items,setItems]=useState([]); const [loading,setLoading]=useState(false); const [error,setError]=useState('');
   const load=async()=>{setLoading(true);setError('');try{const r=await API.get('/questions',{params:{isPreviousYearQuestion:'true',...(examName.trim()?{examName:examName.trim()}:{}),...(examYear.trim()?{examYear:examYear.trim()}:{}),limit:100}});setItems(r.data||[]);}catch(e){setError(e.response?.data?.message||'PYQ could not be loaded');}finally{setLoading(false);}};
