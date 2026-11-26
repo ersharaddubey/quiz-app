@@ -68,8 +68,10 @@ async function createQuestionFromItem(item, sourceName) {
 async function importCurrentAffairs() {
   const feeds = (process.env.CURRENT_AFFAIRS_FEED_URLS || '').split(',').map(v => v.trim()).filter(Boolean);
   const hosts = (process.env.CURRENT_AFFAIRS_ALLOWED_HOSTS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-  if (!feeds.length || !hosts.length) throw new Error('Configure CURRENT_AFFAIRS_FEED_URLS and CURRENT_AFFAIRS_ALLOWED_HOSTS first');
-  const stats = { feeds: 0, items: 0, drafts: 0, skipped: 0, errors: [] };
+  const stats = { status: 'ok', feeds: 0, items: 0, drafts: 0, skipped: 0, errors: [] };
+  if (!feeds.length || !hosts.length) {
+    return { ...stats, status: 'skipped', reason: 'No permitted Current Affairs RSS/Atom feeds configured; see GOVERNMENT-DATA-AUTOMATION.md.' };
+  }
   for (const feedUrl of feeds) {
     if (!allowedFeed(feedUrl, hosts)) { stats.errors.push('Blocked feed URL: ' + feedUrl); continue; }
     try {
