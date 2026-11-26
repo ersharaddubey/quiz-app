@@ -2,9 +2,12 @@ const mongoose = require('mongoose');
 
 const jobAlertSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
+  titleHi: { type: String, default: '', trim: true },
   organization: { type: String, required: true, trim: true },
+  organizationHi: { type: String, default: '', trim: true },
   examCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
   description: { type: String, default: '' },
+  descriptionHi: { type: String, default: '' },
   vacancies: { type: Number, default: null, min: 0 },
   applicationStart: { type: Date, default: null },
   applicationEnd: { type: Date, default: null, index: true },
