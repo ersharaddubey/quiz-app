@@ -210,6 +210,7 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('PYQBank')}><Text style={styles.quickIcon}>📚</Text><Text style={styles.quickText}>{t("pyq")}</Text></TouchableOpacity>
           <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('JobAlerts')}><Text style={styles.quickIcon}>🔔</Text><Text style={styles.quickText}>{t("jobs")}</Text></TouchableOpacity>
           <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('StudentHub')}><Text style={styles.quickIcon}>📊</Text><Text style={styles.quickText}>{t("progress")}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('GovernmentStudy')}><Text style={styles.quickIcon}>🎯</Text><Text style={styles.quickText}>Study Tools</Text></TouchableOpacity>
         </View>
 
         <View style={styles.sliderWrap}>
