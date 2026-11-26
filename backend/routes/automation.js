@@ -59,4 +59,18 @@ router.post('/current-affairs/import', async (req, res) => {
   }
 });
 
+
+router.post('/job-alerts/import', async (req, res) => {
+  if (!secretMatches(req.header('x-job-alert-import-secret'), process.env.JOB_ALERT_IMPORT_SECRET)) {
+    return res.status(401).json({ message: 'Unauthorized job-alert import request' });
+  }
+  try {
+    const { importJobAlertDrafts } = require('../services/jobAlertImporter');
+    const result = await importJobAlertDrafts();
+    res.status(result.errors.length && !result.drafts ? 502 : 200).json(result);
+  } catch (error) {
+    res.status(503).json({ message: error.message });
+  }
+});
+
 module.exports = router;
