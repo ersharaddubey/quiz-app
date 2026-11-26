@@ -21,6 +21,9 @@ export default function GovernmentStudyScreen() {
   const [question, setQuestion] = useState('');
   const [context, setContext] = useState('');
   const [answer, setAnswer] = useState('');
+  const [practiceSet, setPracticeSet] = useState([]);
+  const [practiceAnswers, setPracticeAnswers] = useState({});
+  const [generatingPractice, setGeneratingPractice] = useState(false);
   const [asking, setAsking] = useState(false);
 
   const loadPlanner = useCallback(async () => {
@@ -91,6 +94,17 @@ export default function GovernmentStudyScreen() {
     finally { setAsking(false); }
   };
 
+  const generatePractice = async () => {
+    const topic = question.trim();
+    if (!topic) return Alert.alert('Enter a topic', 'Type a topic such as Indian Constitution or Percentage first.');
+    setGeneratingPractice(true); setPracticeSet([]); setPracticeAnswers({});
+    try {
+      const response = await API.post('/student-tools/assistant/practice', { topic, language: language === 'hi' ? 'hi' : 'en' });
+      setPracticeSet(response.data.questions || []);
+    } catch (e) { Alert.alert('Practice generation failed', e.response?.data?.message || 'Please try again'); }
+    finally { setGeneratingPractice(false); }
+  };
+
   const Tab = ({ id, label }) => <TouchableOpacity onPress={() => setTab(id)} style={[styles.tab, tab === id && styles.tabActive]}><Text style={[styles.tabText, tab === id && { color: C.cyan }]}>{label}</Text></TouchableOpacity>;
 
   return (
@@ -146,6 +160,15 @@ export default function GovernmentStudyScreen() {
             <TextInput value={question} onChangeText={setQuestion} multiline placeholder="Ask a question or paste a concept..." placeholderTextColor={C.muted} style={[styles.input, styles.multiline]} />
             <TextInput value={context} onChangeText={setContext} multiline placeholder="Options / your selected answer (optional)" placeholderTextColor={C.muted} style={[styles.input, styles.multiline]} />
             <TouchableOpacity onPress={askTutor} disabled={asking} style={styles.primary}><Text style={styles.primaryText}>{asking ? 'Thinking…' : 'Explain this'}</Text></TouchableOpacity>
+            <TouchableOpacity onPress={generatePractice} disabled={generatingPractice} style={styles.secondary}><Text style={styles.secondaryText}>{generatingPractice ? 'Generating…' : 'Generate 5 practice questions'}</Text></TouchableOpacity>
+            {practiceSet.map((item, i) => <View key={i} style={styles.panel}>
+              <Text style={styles.cardTitle}>Q{i + 1}. {item.question}</Text>
+              {item.options.map((option, j) => <TouchableOpacity key={j} onPress={() => setPracticeAnswers(prev => ({ ...prev, [i]: j }))} style={[styles.topic, practiceAnswers[i] === j && { backgroundColor: '#17364A' }]}>
+                <Text style={styles.taskTitle}>{String.fromCharCode(65 + j)}. {option}</Text>
+              </TouchableOpacity>)}
+              {practiceAnswers[i] !== undefined && <Text style={styles.meta}>{practiceAnswers[i] === item.correctAnswer ? 'Correct!' : 'Correct answer: ' + item.options[item.correctAnswer]} · {item.explanation}</Text>}
+              <Text style={styles.meta}>AI-generated practice · Not a previous-year question</Text>
+            </View>)}
             {asking && <ActivityIndicator color={C.cyan} style={{ margin: 18 }} />}
             {!!answer && <View style={styles.answer}><Text style={styles.answerTitle}>Explanation</Text><Text style={styles.answerText}>{answer}</Text></View>}
             <Text style={styles.meta}>AI answers can make mistakes. Verify important exam facts with official sources.</Text>
@@ -179,6 +202,8 @@ const styles = StyleSheet.create({
   inline: { flexDirection: 'row', gap: 8 },
   primary: { backgroundColor: '#073C52', borderColor: C.cyan, borderWidth: 1, borderRadius: 12, padding: 13, alignItems: 'center', marginBottom: 14 },
   primaryText: { color: C.cyan, fontWeight: '800' },
+  secondary: { borderWidth: 1, borderColor: C.border, borderRadius: 12, padding: 12, alignItems: 'center', marginBottom: 14 },
+  secondaryText: { color: C.text, fontWeight: '700' },
   task: { flexDirection: 'row', gap: 12, alignItems: 'center', backgroundColor: C.card, padding: 14, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: C.border },
   check: { color: C.muted, fontSize: 20, width: 22, fontWeight: '800' },
   taskTitle: { color: C.text, fontWeight: '700', fontSize: 13 },
