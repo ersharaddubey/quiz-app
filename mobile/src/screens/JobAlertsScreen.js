@@ -12,8 +12,8 @@ export default function JobAlertsScreen() {
       {!!error&&<Text style={s.muted}>{error}</Text>}
       {!error&&!items.length&&<Text style={s.muted}>{t('noJobAlerts')}</Text>}
       {items.map(item=><View key={item._id} style={s.card}>
-        <Text style={s.heading}>{item.title}</Text><Text style={s.org}>{item.organization}</Text>
-        {!!item.description&&<Text style={s.body}>{item.description}</Text>}
+        <Text style={s.heading}>{language === 'hi' ? item.titleHi || item.title : item.title}</Text><Text style={s.org}>{language === 'hi' ? item.organizationHi || item.organization : item.organization}</Text>
+        {!!(language === 'hi' ? item.descriptionHi || item.description : item.description)&&<Text style={s.body}>{language === 'hi' ? item.descriptionHi || item.description : item.description}</Text>}
         {item.vacancies!=null&&<Text style={s.meta}>{language === 'hi' ? 'रिक्तियाँ' : 'Vacancies'}: {item.vacancies}</Text>}
         {!!item.applicationEnd&&<Text style={s.meta}>{language === 'hi' ? 'अंतिम तिथि' : 'Last date'}: {new Date(item.applicationEnd).toLocaleDateString()}</Text>}
         {!!item.examDate&&<Text style={s.meta}>{language === 'hi' ? 'परीक्षा तिथि' : 'Exam date'}: {new Date(item.examDate).toLocaleDateString()}</Text>}
