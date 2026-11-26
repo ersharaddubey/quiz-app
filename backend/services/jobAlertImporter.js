@@ -31,7 +31,7 @@ async function importJobAlertDrafts() {
   for (const feedUrl of feeds) {
     if (!allowedFeed(feedUrl, hosts)) { stats.errors.push('Blocked feed URL: ' + feedUrl); continue; }
     try {
-      const response = await fetch(feedUrl, { headers: { Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml' }, signal: AbortSignal.timeout(20000) });
+      const response = await fetch(feedUrl, { headers: { Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml' }, redirect: 'error', signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw new Error('Feed HTTP ' + response.status);
       const items = parseRss(await response.text()).slice(0, 30);
       stats.feeds++; stats.items += items.length;
