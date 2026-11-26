@@ -352,8 +352,8 @@ const styles = StyleSheet.create({
   },
   noteText: { color: '#F9A8D4', fontSize: 12, lineHeight: 17 },
 
-  quickLinks: { flexDirection: 'row', paddingHorizontal: 24, marginTop: 20, gap: 8 },
-  quickCard: { flex: 1, minHeight: 84, padding: 9, borderRadius: 14, borderWidth: 1, borderColor: C.borderSoft, backgroundColor: C.glass, alignItems: 'center', justifyContent: 'center' },
+  quickLinks: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 24, marginTop: 20, gap: 8 },
+  quickCard: { flexGrow: 1, flexBasis: '28%', minWidth: 76, minHeight: 84, padding: 9, borderRadius: 14, borderWidth: 1, borderColor: C.borderSoft, backgroundColor: C.glass, alignItems: 'center', justifyContent: 'center' },
   quickIcon: { fontSize: 21, marginBottom: 6 },
   quickText: { color: C.text, fontSize: 10, fontWeight: '700', textAlign: 'center' },
   sliderWrap: { marginTop: 22 },
