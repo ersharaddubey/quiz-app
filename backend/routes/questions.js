@@ -54,7 +54,7 @@ router.get('/:id', async (req, res) => {
 // Create question (Admin only)
 router.post('/', auth, async (req, res) => {
   try {
-    const { question, options, correctAnswer, category, subject, syllabus, difficulty, explanation, examName, examYear, paperName, pyqSourceUrl, questionLanguage, translation, isPreviousYearQuestion, verified } = req.body;
+    const { question, questionHi, options, optionsHi, correctAnswer, category, subject, syllabus, difficulty, explanation, explanationHi, examName, examYear, paperName, pyqSourceUrl, questionLanguage, translation, isPreviousYearQuestion, verified } = req.body;
 
     if (!question || !options || options.length < 2 || correctAnswer === undefined) {
       return res.status(400).json({ message: 'Please provide question, at least 2 options and correctAnswer index' });
@@ -80,6 +80,8 @@ router.post('/', auth, async (req, res) => {
 
     const newQuestion = new Question({
       question,
+      questionHi: questionHi || '',
+      optionsHi: Array.isArray(optionsHi) ? optionsHi : [],
       questionHash,
       options,
       correctAnswer,
@@ -90,6 +92,7 @@ router.post('/', auth, async (req, res) => {
       subjectName: sub.name,
       difficulty: difficulty || 'Medium',
       explanation: explanation || '',
+      explanationHi: explanationHi || '',
       examName: examName || '',
       examYear: examYear ? Number(examYear) : null,
       paperName: paperName || '',
