@@ -4,7 +4,7 @@ import API, { persistStudentToken, clearStudentToken } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function StudentHubScreen() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [mode, setMode] = useState('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -107,7 +107,7 @@ export default function StudentHubScreen() {
       <View style={s.metric}><Text style={s.metricValue}>{summary.bestScore || 0}</Text><Text style={s.metricLabel}>{t('bestScore')}</Text></View>
     </View>
     <Text style={s.heading}>{t('weakTopics')}</Text>
-    {revision.length ? revision.map(q=><View key={q._id} style={s.card}><Text style={s.question}>{q.question}</Text><Text style={s.meta}>{q.subjectName || q.categoryName || 'General'}</Text><Text style={s.answer}>Correct: {q.options?.[q.correctAnswer] || 'See explanation'}</Text>{!!q.explanation&&<Text style={s.meta}>{q.explanation}</Text>}</View>) : <Text style={s.meta}>Wrong questions from submitted mock tests will appear here.</Text>}
+    {revision.length ? revision.map(q=><View key={q._id} style={s.card}><Text style={s.question}>{language === 'hi' ? q.questionHi || q.question : q.question}</Text><Text style={s.meta}>{q.subjectName || q.categoryName || 'General'}</Text><Text style={s.answer}>{language === 'hi' ? 'सही उत्तर' : 'Correct'}: {(language === 'hi' && Array.isArray(q.optionsHi) && q.optionsHi.length === q.options?.length ? q.optionsHi : q.options)?.[q.correctAnswer] || 'See explanation'}</Text>{!!q.explanation&&<Text style={s.meta}>{language === 'hi' ? q.explanationHi || q.explanation : q.explanation}</Text>}</View>) : <Text style={s.meta}>Wrong questions from submitted mock tests will appear here.</Text>}
     <Text style={s.heading}>{t('weeklyLeaderboard')}</Text>
     {leaderboard.map((p,i)=><View key={p.studentId} style={s.rank}><Text style={s.rankText}>#{i+1}  {p.name}</Text><Text style={s.rankText}>{p.points} pts</Text></View>)}
     {!leaderboard.length&&<Text style={s.meta}>No ranked attempts yet.</Text>}
