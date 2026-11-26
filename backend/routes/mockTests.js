@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 const studentAuth = require('../middleware/studentAuth');
 const MockTestAttempt = require('../models/MockTestAttempt');
 const MockTestSession = require('../models/MockTestSession');
+const { scoreMockTest } = require('../services/mockTestScoring');
 
 function safeQuestion(question) {
   const item = question.toObject ? question.toObject() : { ...question };
@@ -75,24 +76,14 @@ router.post('/:id/submit', studentAuth, async (req, res) => {
     claimedSessionId = session._id;
 
     const questions = await Question.find({ _id: { $in: test.questions } }).select('correctAnswer options');
-    const byId = new Map(questions.map(q => [String(q._id), q]));
-    let correct = 0, wrong = 0, unanswered = 0;
-    const wrongQuestionIds = [];
-    const normalizedAnswers = {};
-    for (const id of test.questions.map(String)) {
-      const q = byId.get(id);
-      const value = answers[id];
-      if (!q || value === undefined || value === null || value === '') { unanswered++; continue; }
-      const selected = Number(value);
-      if (!Number.isInteger(selected) || selected < 0 || selected >= q.options.length) { unanswered++; continue; }
-      normalizedAnswers[id] = selected;
-      if (selected === q.correctAnswer) correct++;
-      else { wrong++; wrongQuestionIds.push(id); }
-    }
-    const score = Math.round((correct * test.marksPerQuestion - wrong * test.negativeMarksPerWrong) * 100) / 100;
-    const maxMarks = test.questions.length * test.marksPerQuestion;
-    const attempted = correct + wrong;
-    const accuracy = attempted ? Math.round(correct / attempted * 10000) / 100 : 0;
+    const result = scoreMockTest({
+      questionIds: test.questions,
+      questions,
+      answers,
+      marksPerQuestion: test.marksPerQuestion,
+      negativeMarksPerWrong: test.negativeMarksPerWrong
+    });
+    const { correct, wrong, unanswered, score, maxMarks, accuracy, wrongQuestionIds, normalizedAnswers } = result;
 
     const attempt = await MockTestAttempt.findOneAndUpdate(
       { session: session._id },
