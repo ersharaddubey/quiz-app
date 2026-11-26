@@ -177,3 +177,8 @@ Add matching secret values to GitHub Actions. Do not commit actual API keys or s
 - PYQ database population and provenance verification across SSC, Railway, UPSC, Banking, State PCS, Police and Teaching still require licensed/verified original papers; AI/trivia content is never classified as PYQ.
 - Automatic adaptive difficulty and scheduled automatic revision-test creation are not yet implemented. Wrong-question analytics and manual wrong-question revision are available.
 - Real-device testing and live MongoDB/API end-to-end tests remain release gates.
+
+
+## Question bank data updates
+
+Use [DATA-UPDATE-GUIDE.md](./DATA-UPDATE-GUIDE.md) and the [CSV column template](./backend/data/question-bank-template.csv) when preparing bulk question data. CSV is a preparation template, not a direct upload endpoint. Automated JSON imports preserve Hindi/English and PYQ provenance fields, but imported questions remain unverified; independently review answers and sources before marking PYQs verified.
