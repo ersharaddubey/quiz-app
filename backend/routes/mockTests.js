@@ -8,6 +8,22 @@ const MockTestAttempt = require('../models/MockTestAttempt');
 const MockTestSession = require('../models/MockTestSession');
 const { scoreMockTest } = require('../services/mockTestScoring');
 
+function validateSections(sections, questionIds) {
+  if (sections === undefined) return null;
+  if (!Array.isArray(sections)) return 'Sections must be an array';
+  const allowed = new Set(questionIds.map(String));
+  const assigned = new Set();
+  for (const section of sections) {
+    if (!section || !String(section.title || '').trim() || !Array.isArray(section.questionIds) || !section.questionIds.length) return 'Each section needs a title and at least one question';
+    for (const id of section.questionIds.map(String)) {
+      if (!allowed.has(id)) return 'Section question IDs must belong to the mock test';
+      if (assigned.has(id)) return 'A question cannot belong to more than one section';
+      assigned.add(id);
+    }
+  }
+  return null;
+}
+
 function safeQuestion(question) {
   const item = question.toObject ? question.toObject() : { ...question };
   delete item.correctAnswer;
@@ -115,6 +131,8 @@ router.post('/', auth, async (req, res) => {
     const payload = { ...req.body, questions: Array.isArray(req.body.questions) ? req.body.questions : [] };
     if (!payload.questions.length) return res.status(400).json({ message: 'At least one question is required' });
     if (new Set(payload.questions.map(String)).size !== payload.questions.length) return res.status(400).json({ message: 'Duplicate question IDs are not allowed' });
+    const sectionError = validateSections(payload.sections, payload.questions);
+    if (sectionError) return res.status(400).json({ message: sectionError });
     const count = await Question.countDocuments({ _id: { $in: payload.questions } });
     if (count !== new Set(payload.questions.map(String)).size) return res.status(400).json({ message: 'One or more question IDs are invalid' });
     const test = await MockTest.create(payload);
@@ -128,6 +146,8 @@ router.put('/:id', auth, async (req, res) => {
     if (payload.questions) {
       if (!Array.isArray(payload.questions) || payload.questions.length === 0) return res.status(400).json({ message: 'At least one question is required' });
       if (new Set(payload.questions.map(String)).size !== payload.questions.length) return res.status(400).json({ message: 'Duplicate question IDs are not allowed' });
+      const sectionError = validateSections(payload.sections, payload.questions);
+      if (sectionError) return res.status(400).json({ message: sectionError });
       const count = await Question.countDocuments({ _id: { $in: payload.questions } });
       if (count !== new Set(payload.questions.map(String)).size) return res.status(400).json({ message: 'One or more question IDs are invalid' });
     }
