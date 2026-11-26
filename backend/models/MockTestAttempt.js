@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const mockTestAttemptSchema = new mongoose.Schema({
   student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true, index: true },
   test: { type: mongoose.Schema.Types.ObjectId, ref: 'MockTest', required: true, index: true },
+  session: { type: mongoose.Schema.Types.ObjectId, ref: 'MockTestSession', unique: true, sparse: true },
   answers: { type: mongoose.Schema.Types.Mixed, default: {} },
   correct: { type: Number, required: true, min: 0 },
   wrong: { type: Number, required: true, min: 0 },
