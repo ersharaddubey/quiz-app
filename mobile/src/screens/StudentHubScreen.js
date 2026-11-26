@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import API, { persistStudentToken, clearStudentToken } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function StudentHubScreen() {
+  const { t } = useLanguage();
   const [mode, setMode] = useState('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -85,28 +87,28 @@ export default function StudentHubScreen() {
   };
 
   if (!token) return <View style={s.page}>
-    <Text style={s.title}>Student Account</Text>
+    <Text style={s.title}{t('studentAccount')}</Text>
     <Text style={s.sub}>Sign in to save mock-test attempts, analytics and revision history. Your session is encrypted on this device.</Text>
-    {mode === 'register' && <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor="#8BA3C7" style={s.input}/>}
-    <TextInput value={email} onChangeText={setEmail} placeholder="Email address" autoCapitalize="none" keyboardType="email-address" placeholderTextColor="#8BA3C7" style={s.input}/>
-    <TextInput value={password} onChangeText={setPassword} placeholder="Password (min 8 characters)" secureTextEntry placeholderTextColor="#8BA3C7" style={s.input}/>
+    {mode === 'register' && <TextInput value={name} onChangeText={setName} placeholder={t('fullName')} placeholderTextColor="#8BA3C7" style={s.input}/>}
+    <TextInput value={email} onChangeText={setEmail} placeholder={t('email')} autoCapitalize="none" keyboardType="email-address" placeholderTextColor="#8BA3C7" style={s.input}/>
+    <TextInput value={password} onChangeText={setPassword} placeholder={t('password')} secureTextEntry placeholderTextColor="#8BA3C7" style={s.input}/>
     {!!error && <Text style={s.error}>{error}</Text>}
-    <TouchableOpacity style={s.button} onPress={auth} disabled={loading}><Text style={s.buttonText}>{loading ? 'Please wait…' : mode === 'register' ? 'Create account' : 'Sign in'}</Text></TouchableOpacity>
+    <TouchableOpacity style={s.button} onPress={auth} disabled={loading}><Text style={s.buttonText}>{loading ? 'Please wait…' : mode === 'register' ? t('createAccount') : t('signIn')}</Text></TouchableOpacity>
     <TouchableOpacity onPress={()=>{setMode(mode==='login'?'register':'login');setError('');}}><Text style={s.link}>{mode==='login'?'New student? Create account':'Already registered? Sign in'}</Text></TouchableOpacity>
   </View>;
 
   const summary = data?.summary || {};
   return <ScrollView style={s.page} contentContainerStyle={{paddingBottom:40}}>
-    <View style={s.row}><Text style={s.title}>My Learning</Text><View style={s.actions}><TouchableOpacity onPress={refresh}><Text style={s.link}>Refresh</Text></TouchableOpacity><TouchableOpacity onPress={logout}><Text style={s.logout}>Sign out</Text></TouchableOpacity></View></View>
+    <View style={s.row}><Text style={s.title}{t('myLearning')}</Text><View style={s.actions}><TouchableOpacity onPress={refresh}><Text style={s.link}>{t('refresh')}</Text></TouchableOpacity><TouchableOpacity onPress={logout}><Text style={s.logout}>{t('signOut')}</Text></TouchableOpacity></View></View>
     <View style={s.grid}>
-      <View style={s.metric}><Text style={s.metricValue}>{summary.attempts || 0}</Text><Text style={s.metricLabel}>Mock attempts</Text></View>
-      <View style={s.metric}><Text style={s.metricValue}>{Number(summary.averageAccuracy || 0).toFixed(1)}%</Text><Text style={s.metricLabel}>Average accuracy</Text></View>
-      <View style={s.metric}><Text style={s.metricValue}>{summary.totalCorrect || 0}</Text><Text style={s.metricLabel}>Correct answers</Text></View>
-      <View style={s.metric}><Text style={s.metricValue}>{summary.bestScore || 0}</Text><Text style={s.metricLabel}>Best score</Text></View>
+      <View style={s.metric}><Text style={s.metricValue}>{summary.attempts || 0}</Text><Text style={s.metricLabel}{t('mockAttempts')}</Text></View>
+      <View style={s.metric}><Text style={s.metricValue}>{Number(summary.averageAccuracy || 0).toFixed(1)}%</Text><Text style={s.metricLabel}{t('averageAccuracy')}</Text></View>
+      <View style={s.metric}><Text style={s.metricValue}>{summary.totalCorrect || 0}</Text><Text style={s.metricLabel}{t('correctAnswers')}</Text></View>
+      <View style={s.metric}><Text style={s.metricValue}>{summary.bestScore || 0}</Text><Text style={s.metricLabel}{t('bestScore')}</Text></View>
     </View>
-    <Text style={s.heading}>Weak topics / repeated mistakes</Text>
+    <Text style={s.heading}{t('weakTopics')}</Text>
     {revision.length ? revision.map(q=><View key={q._id} style={s.card}><Text style={s.question}>{q.question}</Text><Text style={s.meta}>{q.subjectName || q.categoryName || 'General'}</Text><Text style={s.answer}>Correct: {q.options?.[q.correctAnswer] || 'See explanation'}</Text>{!!q.explanation&&<Text style={s.meta}>{q.explanation}</Text>}</View>) : <Text style={s.meta}>Wrong questions from submitted mock tests will appear here.</Text>}
-    <Text style={s.heading}>Weekly leaderboard</Text>
+    <Text style={s.heading}{t('weeklyLeaderboard')}</Text>
     {leaderboard.map((p,i)=><View key={p.studentId} style={s.rank}><Text style={s.rankText}>#{i+1}  {p.name}</Text><Text style={s.rankText}>{p.points} pts</Text></View>)}
     {!leaderboard.length&&<Text style={s.meta}>No ranked attempts yet.</Text>}
     {!!error&&<Text style={s.error}>{error}</Text>}
