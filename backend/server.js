@@ -164,7 +164,8 @@ app.use('/api/banners', require('./routes/banners'));
 
 app.use('/api/upload', require('./routes/upload'));
 
-// Scheduled question imports (GitHub Actions -> secured backend endpoint)
+// Secured scheduled imports (GitHub Actions -> question, current-affairs and job-alert draft endpoints).
+// Keep this router mounted before the 404 handler so every automation endpoint is reachable.
 app.use('/api/automation', require('./routes/automation'));
 
 // Student accounts and authenticated learning history
