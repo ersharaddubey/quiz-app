@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import API from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function JobAlertsScreen() {
+  const { t, language } = useLanguage();
   const { t, language } = useLanguage();
   const [items,setItems]=useState([]); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
   useEffect(()=>{ API.get('/job-alerts').then(r=>setItems(r.data||[])).catch(e=>setError(e.response?.data?.message||'Job alerts could not be loaded')).finally(()=>setLoading(false)); },[]);
