@@ -158,6 +158,8 @@ The active branch `feature/complete-government-exam-suite` now adds:
 - AI Study Assistant: `POST /api/student-tools/assistant/explain`; requires student JWT and server-side `QUESTION_AI_API_URL`, `QUESTION_AI_API_KEY`, `QUESTION_AI_MODEL`. Provider keys must never be placed in the mobile app.
 - Mock tests support optional sections. Admin test JSON may include `sections: [{ title, questionIds }]`; section IDs must belong to the test and cannot overlap. Submission results include section-wise correct/wrong/unanswered/score/maxMarks.
 - Weekly leaderboard now includes rank and percentile among students with an attempt in the preceding seven days.
+- Adaptive recommendations analyze the student's last 7–90 days of mock-test answers per subject and suggest Easy/Medium/Hard difficulty.
+- Due revision endpoint resurfaces incorrectly answered questions after a 24-hour cooling-off period.
 - Current-affairs RSS importer: `POST /api/automation/current-affairs/import`; only HTTPS feeds whose exact host is allowlisted are fetched. AI-generated Hindi/English MCQs are stored as DRAFT, never auto-published.
 - Recruitment RSS importer: `POST /api/automation/job-alerts/import`; allowlisted HTTPS feed notices are extracted into DRAFT job alerts. Dates/vacancies are only saved when explicitly present; official verification remains an admin step.
 - Daily GitHub Actions workflow triggers both draft importers. The workflow requires repository secrets `BACKEND_URL`, `CURRENT_AFFAIRS_IMPORT_SECRET`, and `JOB_ALERT_IMPORT_SECRET`.
