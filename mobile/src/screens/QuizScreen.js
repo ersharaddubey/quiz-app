@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Platform,
 } from 'react-native';
@@ -16,6 +17,7 @@ const C = {
 };
 
 export default function QuizScreen({ route, navigation }) {
+  const { t } = useLanguage();
   const { questions, title } = route.params;
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -72,7 +74,7 @@ export default function QuizScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.qCard}>
-          <Text style={styles.qLabel}>QUESTION {current + 1}</Text>
+          <Text style={styles.qLabel}>{t('question')} {current + 1}</Text>
           <Text style={styles.qText}>{q.question}</Text>
         </View>
 
@@ -123,9 +125,9 @@ export default function QuizScreen({ route, navigation }) {
           <Text style={styles.nextText}>
             {showFeedback
               ? current + 1 === questions.length
-                ? 'Finish Quiz'
-                : 'Next Question →'
-              : 'Check Answer'}
+                ? t('finishQuiz')
+                : t('nextQuestion')
+              : t('checkAnswer')}
           </Text>
         </TouchableOpacity>
       </ScrollView>
