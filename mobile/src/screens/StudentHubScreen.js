@@ -110,7 +110,7 @@ export default function StudentHubScreen({ navigation }) {
     {!!revision.length && <TouchableOpacity style={s.button} onPress={() => navigation.navigate('Quiz', { questions: revision, title: language === 'hi' ? 'गलत प्रश्नों का रिवीजन टेस्ट' : 'Wrong Questions Revision Test' })}><Text style={s.buttonText}>{language === 'hi' ? 'गलत प्रश्नों का टेस्ट शुरू करें' : 'Start revision test'} ({revision.length})</Text></TouchableOpacity>}
     {revision.length ? revision.map(q=><View key={q._id} style={s.card}><Text style={s.question}>{language === 'hi' ? q.questionHi || q.question : q.question}</Text><Text style={s.meta}>{q.subjectName || q.categoryName || 'General'}</Text><Text style={s.answer}>{language === 'hi' ? 'सही उत्तर' : 'Correct'}: {(language === 'hi' && Array.isArray(q.optionsHi) && q.optionsHi.length === q.options?.length ? q.optionsHi : q.options)?.[q.correctAnswer] || 'See explanation'}</Text>{!!q.explanation&&<Text style={s.meta}>{language === 'hi' ? q.explanationHi || q.explanation : q.explanation}</Text>}</View>) : <Text style={s.meta}>Wrong questions from submitted mock tests will appear here.</Text>}
     <Text style={s.heading}>{t('weeklyLeaderboard')}</Text>
-    {leaderboard.map((p,i)=><View key={p.studentId} style={s.rank}><Text style={s.rankText}>#{i+1}  {p.name}</Text><Text style={s.rankText}>{p.points} pts</Text></View>)}
+    {leaderboard.map((p,i)=><View key={p.studentId} style={s.rank}><Text style={s.rankText}>#{i+1}  {p.name}</Text><Text style={s.rankText}>{p.points} pts · {p.percentile ?? 0}%ile</Text></View>)}
     {!leaderboard.length&&<Text style={s.meta}>No ranked attempts yet.</Text>}
     {!!error&&<Text style={s.error}>{error}</Text>}
   </ScrollView>;
