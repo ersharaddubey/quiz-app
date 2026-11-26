@@ -4,6 +4,7 @@ import {
   ScrollView, StatusBar, Dimensions, FlatList, Platform,
 } from 'react-native';
 import API from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 const SLIDE_W = width - 48;
@@ -59,6 +60,7 @@ const FALLBACK_SUBJECTS = [
 ];
 
 export default function HomeScreen({ navigation }) {
+  const { language, setLanguage, t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [banners, setBanners] = useState([]);
@@ -171,7 +173,7 @@ export default function HomeScreen({ navigation }) {
     return (
       <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color={C.cyan} />
-        <Text style={{ color: C.muted, marginTop: 14, fontSize: 14 }}>Loading exams...</Text>
+        <Text style={{ color: C.muted, marginTop: 14, fontSize: 14 }}>{t("loading")}</Text>
       </View>
     );
   }
@@ -184,9 +186,10 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={{ paddingBottom: 56 }}
       >
         <View style={styles.hero}>
+          <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 10 }}><TouchableOpacity onPress={() => setLanguage(language === "en" ? "hi" : "en")} style={{ borderWidth: 1, borderColor: C.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}><Text style={{ color: C.cyan, fontWeight: "700" }}>{t("language")}</Text></TouchableOpacity></View>
           <View style={styles.heroGlow} />
           <Text style={styles.heroBadge}>INDIA GOVT EXAMS</Text>
-          <Text style={styles.heroTitle}>Sarkari Exam Quiz</Text>
+          <Text style={styles.heroTitle}>{t("home")}</Text>
           <Text style={styles.heroSub}>SSC · Banking · UPSC · Railways · Defence · PSC</Text>
 
           {!!error && (
@@ -202,11 +205,11 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.quickLinks}>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('CurrentAffairs')}><Text style={styles.quickIcon}>📰</Text><Text style={styles.quickText}>Current Affairs</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('MockTests')}><Text style={styles.quickIcon}>⏱️</Text><Text style={styles.quickText}>Mock Tests</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('PYQBank')}><Text style={styles.quickIcon}>📚</Text><Text style={styles.quickText}>PYQ Bank</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('JobAlerts')}><Text style={styles.quickIcon}>🔔</Text><Text style={styles.quickText}>Job Alerts</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('StudentHub')}><Text style={styles.quickIcon}>📊</Text><Text style={styles.quickText}>My Progress</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('CurrentAffairs')}><Text style={styles.quickIcon}>📰</Text><Text style={styles.quickText}>{t("currentAffairs")}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('MockTests')}><Text style={styles.quickIcon}>⏱️</Text><Text style={styles.quickText}>{t("mockTests")}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('PYQBank')}><Text style={styles.quickIcon}>📚</Text><Text style={styles.quickText}>{t("pyq")}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('JobAlerts')}><Text style={styles.quickIcon}>🔔</Text><Text style={styles.quickText}>{t("jobs")}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.quickCard} onPress={() => navigation.navigate('StudentHub')}><Text style={styles.quickIcon}>📊</Text><Text style={styles.quickText}>{t("progress")}</Text></TouchableOpacity>
         </View>
 
         <View style={styles.sliderWrap}>
