@@ -182,3 +182,12 @@ Add matching secret values to GitHub Actions. Do not commit actual API keys or s
 ## Question bank data updates
 
 Use [DATA-UPDATE-GUIDE.md](./DATA-UPDATE-GUIDE.md) and the [CSV column template](./backend/data/question-bank-template.csv) when preparing bulk question data. CSV is a preparation template, not a direct upload endpoint. Automated JSON imports preserve Hindi/English and PYQ provenance fields, but imported questions remain unverified; independently review answers and sources before marking PYQs verified.
+
+
+## Government data sources and six-hour automation
+
+- Official national/state exam authority source registry: [`backend/data/government-exam-sources.json`](backend/data/government-exam-sources.json)
+- Setup, source validation, licences, and 6-hour automation: [`GOVERNMENT-DATA-AUTOMATION.md`](GOVERNMENT-DATA-AUTOMATION.md)
+- Question-bank import schema and verification rules: [`DATA-UPDATE-GUIDE.md`](DATA-UPDATE-GUIDE.md)
+
+GitHub Actions schedules the question import every 6 hours and current-affairs/recruitment draft imports every 6 hours (staggered). The registry records official portals; it does not mean every portal provides an RSS/JSON feed. Configure only verified, terms-permitted feed URLs and the backend/GitHub secrets listed in `GOVERNMENT-DATA-AUTOMATION.md`. Imported notices and questions remain drafts/unverified until reviewed.
