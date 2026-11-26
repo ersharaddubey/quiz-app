@@ -14,6 +14,7 @@ import MockTestAttemptScreen from './src/screens/MockTestAttemptScreen';
 import PYQBankScreen from './src/screens/PYQBankScreen';
 import StudentHubScreen from './src/screens/StudentHubScreen';
 import { restoreStudentSession } from './src/services/api';
+import { LanguageProvider } from './src/context/LanguageContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,7 @@ export default function App() {
   }
 
   return (
+    <LanguageProvider>
     <SafeAreaProvider>
       <StatusBar style="light" />
       <NavigationContainer>
@@ -62,5 +64,6 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
+    </LanguageProvider>
   );
 }
