@@ -20,8 +20,8 @@ export default function JobAlertsScreen() {
         {!!item.applicationEnd&&<Text style={s.meta}>{language === 'hi' ? 'अंतिम तिथि' : 'Last date'}: {new Date(item.applicationEnd).toLocaleDateString()}</Text>}
         {!!item.examDate&&<Text style={s.meta}>{language === 'hi' ? 'परीक्षा तिथि' : 'Exam date'}: {new Date(item.examDate).toLocaleDateString()}</Text>}
         <TouchableOpacity style={s.button} onPress={()=>Linking.openURL(item.officialUrl)}><Text style={s.buttonText}>{t('officialNotification')}</Text></TouchableOpacity>
-        {!!item.admitCardUrl&&<TouchableOpacity onPress={()=>Linking.openURL(item.admitCardUrl)}><Text style={s.link}{t('admitCard')}</Text></TouchableOpacity>}
-        {!!item.resultUrl&&<TouchableOpacity onPress={()=>Linking.openURL(item.resultUrl)}><Text style={s.link}{t('result')}</Text></TouchableOpacity>}
+        {!!item.admitCardUrl&&<TouchableOpacity onPress={()=>Linking.openURL(item.admitCardUrl)}><Text style={s.link}>{t('admitCard')}</Text></TouchableOpacity>}
+        {!!item.resultUrl&&<TouchableOpacity onPress={()=>Linking.openURL(item.resultUrl)}><Text style={s.link}>{t('result')}</Text></TouchableOpacity>}
       </View>)}
     </ScrollView>}
   </View>;
