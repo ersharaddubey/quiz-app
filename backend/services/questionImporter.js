@@ -277,7 +277,7 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
       for (const raw of source.questions) await saveQuestion(raw, source.name, stats, errors);
     }
 
-    if (hasConfiguredAIProviders()) {
+    if (process.env.QUESTION_AI_ENABLED === 'true' && hasConfiguredAIProviders()) {
       try {
         const ai = await fetchAiQuestions();
         sourceNames.push('ai-provider');
@@ -286,7 +286,7 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
       } catch (error) { errors.push(`AI source: ${error.message}`); }
     }
 
-    if (!sourceNames.length && !errors.length) errors.push('No question sources configured. Set QUESTION_API_URLS and/or QUESTION_SOURCE_URLS, or configure at least one supported AI provider API key.');
+    if (!sourceNames.length && !errors.length) errors.push('No question sources configured. Add a supported public JSON/GitHub source; AI is optional and only runs when QUESTION_AI_ENABLED=true.');
     const status = errors.length ? (stats.inserted || stats.duplicates ? 'partial' : 'failed') : 'success';
     Object.assign(run, { finishedAt: new Date(), status, ...stats, errors: errors.slice(0, 100), sources: sourceNames });
     await run.save();
