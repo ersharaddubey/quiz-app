@@ -17,6 +17,7 @@ const questionSchema = new mongoose.Schema({
   // Import metadata is optional so all existing/manual question records remain valid.
   source: { type: String, default: 'admin' },
   sourceId: { type: String, default: '' },
+  sourceUrl: { type: String, default: '' },
   questionHash: { type: String, default: '' },
   autoValidated: { type: Boolean, default: false },
   verified: { type: Boolean, default: false },
