@@ -48,7 +48,7 @@ function flattenQuestionPayload(payload, sourceUrl) {
     return payload.sections.flatMap(section => (section.questions || []).map(question => ({
       ...question,
       examName: payload.exam_name || payload.examName || payload.exam_id || '',
-      examYear: Number((payload.exam_name || '').match(/20\\d{2}/)?.[0]) || null,
+      examYear: Number((payload.exam_name || '').match(/20\d{2}/)?.[0]) || null,
       sectionName: section.section_name || section.sectionName || '',
       paperName: payload.exam_name || payload.exam_id || '',
       sourceUrl,
