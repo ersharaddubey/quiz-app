@@ -3,6 +3,7 @@ const Question = require('../models/Question');
 const Category = require('../models/Category');
 const Subject = require('../models/Subject');
 const Syllabus = require('../models/Syllabus');
+const { generateAIText, getGeminiKeys } = require('./aiProvider');
 
 const clean = value => decodeText(String(value == null ? '' : value)).trim();
 const key = value => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -121,9 +122,9 @@ async function fetchQuestionSources() {
 }
 
 async function fetchAiQuestions() {
-  const endpoint = process.env.QUESTION_AI_API_URL;
-  const apiKey = process.env.QUESTION_AI_API_KEY;
-  if (!endpoint || !apiKey) return { questions: [], error: null };
+  const hasGemini = getGeminiKeys().length > 0;
+  const hasGroq = Boolean(process.env.QUESTION_AI_API_URL && process.env.QUESTION_AI_API_KEY);
+  if (!hasGemini && !hasGroq) return { questions: [], error: null };
 
   // Give the model the real category/subject pairs from MongoDB. This avoids
   // guessed names and lets one import fill the existing exam sections.
@@ -138,22 +139,11 @@ async function fetchAiQuestions() {
   const count = Math.min(Math.max(Number(process.env.QUESTION_AI_BATCH_SIZE || 25), 1), 60);
   const prompt = `Create ${count} original multiple-choice practice questions for Indian competitive exams. Return JSON only: {"questions":[{"question":"...","options":["A","B","C","D"],"correctAnswer":0,"categoryName":"EXACT CATEGORY","subjectName":"EXACT SUBJECT","difficulty":"Easy|Medium|Hard","explanation":"brief explanation"}]}.\n\nUse ONLY these exact existing category/subject pairs (copy names exactly):\n${JSON.stringify(pairs)}\n\nDistribute questions across different categories and subjects, prioritizing UPSC, SSC, Banking, Railways, Defence and State PSC. Use Indian exam-relevant static facts, maths, reasoning, English, science, polity, history, geography and economy. Do not create current-affairs claims or claim these are previous-year questions. Exactly four distinct options; correctAnswer is zero-based. Do not add markdown.`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: String(process.env.QUESTION_AI_MODEL || '').trim(),
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-    }),
-    signal: AbortSignal.timeout(60000),
-  });
-  if (!response.ok) throw new Error(`AI provider returned HTTP ${response.status}: ${(await response.text()).slice(0, 300)}`);
-  const data = await response.json();
-  let content = data.choices?.[0]?.message?.content || data.output_text || '';
-  content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-  const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+  const content = await generateAIText([
+    { role: 'user', content: prompt }
+  ], { temperature: 0.2, maxTokens: Math.max(2500, count * 180), timeoutMs: 90000 });
+  const cleaned = content.replace(/^\x60\x60\x60(?:json)?\s*/i, '').replace(/\s*\x60\x60\x60$/, '');
+  const parsed = JSON.parse(cleaned);
   return { questions: extractQuestionList(parsed) };
 }
 
