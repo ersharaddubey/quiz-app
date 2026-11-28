@@ -88,12 +88,19 @@ async function fetchFeedXml(feedUrl) {
 }
 
 async function importCurrentAffairs() {
-  const feeds = (process.env.CURRENT_AFFAIRS_FEED_URLS || '').split(',').map(v => v.trim()).filter(Boolean);
-  const hosts = (process.env.CURRENT_AFFAIRS_ALLOWED_HOSTS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+  // Official PIB Press Release feeds verified against PIB's own RSS directory.
+  // Keep configured feeds, but always retain these official English/Hindi fallbacks.
+  const officialFallbackFeeds = [
+    'https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3',
+    'https://pib.gov.in/RssMain.aspx?ModId=6&Lang=2&Regid=3'
+  ];
+  const configuredFeeds = (process.env.CURRENT_AFFAIRS_FEED_URLS || '').split(',').map(v => v.trim()).filter(Boolean);
+  const feeds = [...new Set([...configuredFeeds, ...officialFallbackFeeds])];
+  const hosts = [...new Set([
+    ...(process.env.CURRENT_AFFAIRS_ALLOWED_HOSTS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean),
+    'pib.gov.in'
+  ])];
   const stats = { status: 'ok', feeds: 0, items: 0, drafts: 0, skipped: 0, errors: [] };
-  if (!feeds.length || !hosts.length) {
-    return { ...stats, status: 'skipped', reason: 'No permitted Current Affairs RSS/Atom feeds configured; see GOVERNMENT-DATA-AUTOMATION.md.' };
-  }
   for (const feedUrl of feeds) {
     if (!allowedFeed(feedUrl, hosts)) { stats.errors.push('Blocked feed URL: ' + feedUrl); continue; }
     try {
