@@ -142,7 +142,7 @@ async function fetchAiQuestions() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: process.env.QUESTION_AI_MODEL,
+      model: String(process.env.QUESTION_AI_MODEL || '').trim(),
       temperature: 0.2,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
