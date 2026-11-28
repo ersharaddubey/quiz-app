@@ -72,3 +72,12 @@ The current backend models define these application collections (Mongoose uses t
 - `StudyPlan`: daily study plans and completion state.
 
 The source registry is currently a version-controlled JSON discovery catalogue, not a MongoDB collection. The existing question importer requires category and subject records to exist before questions can be saved. It does not auto-create every state/exam category from the registry. Seed or add the required categories/subjects in Admin before enabling a new exam-specific question feed.
+
+## Verified Current Affairs RSS fallbacks
+
+The backend importer now always includes these official PIB Press Release feeds in addition to any URLs configured in `CURRENT_AFFAIRS_FEED_URLS`:
+
+- English: https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3
+- Hindi: https://pib.gov.in/RssMain.aspx?ModId=6&Lang=2&Regid=3
+
+Both feed variants are listed in PIB's own RSS directory. The importer still validates HTTPS and the exact `pib.gov.in` hostname, retries transient fetch failures, and records each failed feed separately. Configured feed URLs are retained; the fallback feeds do not replace them.
