@@ -65,6 +65,28 @@ async function createQuestionFromItem(item, sourceName) {
   }
   return created;
 }
+async function fetchFeedXml(feedUrl) {
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch(feedUrl, {
+        headers: {
+          Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml',
+          'User-Agent': 'QuizApp-GovernmentExam-FeedImporter/1.0'
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(25000)
+      });
+      if (!response.ok) throw new Error('Feed HTTP ' + response.status);
+      return await response.text();
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 1500));
+    }
+  }
+  throw lastError || new Error('Feed request failed');
+}
+
 async function importCurrentAffairs() {
   const feeds = (process.env.CURRENT_AFFAIRS_FEED_URLS || '').split(',').map(v => v.trim()).filter(Boolean);
   const hosts = (process.env.CURRENT_AFFAIRS_ALLOWED_HOSTS || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
@@ -75,9 +97,7 @@ async function importCurrentAffairs() {
   for (const feedUrl of feeds) {
     if (!allowedFeed(feedUrl, hosts)) { stats.errors.push('Blocked feed URL: ' + feedUrl); continue; }
     try {
-      const response = await fetch(feedUrl, { headers: { Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml' }, redirect: 'error', signal: AbortSignal.timeout(20000) });
-      if (!response.ok) throw new Error('Feed HTTP ' + response.status);
-      const xml = await response.text();
+      const xml = await fetchFeedXml(feedUrl);
       const items = parseRss(xml).slice(0, 30);
       stats.feeds++; stats.items += items.length;
       const host = new URL(feedUrl).hostname;
@@ -91,4 +111,4 @@ async function importCurrentAffairs() {
   }
   return stats;
 }
-module.exports = { decodeXml, tagValue, parseRss, allowedFeed, importCurrentAffairs };
+module.exports = { decodeXml, tagValue, parseRss, allowedFeed, fetchFeedXml, importCurrentAffairs };
