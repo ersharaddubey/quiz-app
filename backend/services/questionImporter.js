@@ -3,7 +3,7 @@ const Question = require('../models/Question');
 const Category = require('../models/Category');
 const Subject = require('../models/Subject');
 const Syllabus = require('../models/Syllabus');
-const { generateAIText, getGeminiKeys } = require('./aiProvider');
+const { generateAIText, hasConfiguredAIProviders } = require('./aiProvider');
 
 const clean = value => decodeText(String(value == null ? '' : value)).trim();
 const key = value => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -122,9 +122,7 @@ async function fetchQuestionSources() {
 }
 
 async function fetchAiQuestions() {
-  const hasGemini = getGeminiKeys().length > 0;
-  const hasGroq = Boolean(process.env.QUESTION_AI_API_URL && process.env.QUESTION_AI_API_KEY);
-  if (!hasGemini && !hasGroq) return { questions: [], error: null };
+  if (!hasConfiguredAIProviders()) return { questions: [], error: null };
 
   // Give the model the real category/subject pairs from MongoDB. This avoids
   // guessed names and lets one import fill the existing exam sections.
@@ -220,7 +218,7 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
       for (const raw of source.questions) await saveQuestion(raw, source.name, stats, errors);
     }
 
-    if (process.env.QUESTION_AI_API_URL && process.env.QUESTION_AI_API_KEY && process.env.QUESTION_AI_MODEL) {
+    if (hasConfiguredAIProviders()) {
       try {
         const ai = await fetchAiQuestions();
         sourceNames.push('ai-provider');
@@ -228,7 +226,7 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
       } catch (error) { errors.push(`AI source: ${error.message}`); }
     }
 
-    if (!sourceNames.length && !errors.length) errors.push('No question sources configured. Set QUESTION_API_URLS and/or QUESTION_SOURCE_URLS; configure all three AI variables to enable AI generation.');
+    if (!sourceNames.length && !errors.length) errors.push('No question sources configured. Set QUESTION_API_URLS and/or QUESTION_SOURCE_URLS, or configure at least one supported AI provider API key.');
     const status = errors.length ? (stats.inserted || stats.duplicates ? 'partial' : 'failed') : 'success';
     Object.assign(run, { finishedAt: new Date(), status, ...stats, errors: errors.slice(0, 100), sources: sourceNames });
     await run.save();
