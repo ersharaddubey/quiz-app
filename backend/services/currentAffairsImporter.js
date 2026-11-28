@@ -31,7 +31,7 @@ async function createQuestionFromItem(item, sourceName) {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: process.env.QUESTION_AI_MODEL || 'openai/gpt-oss-20b',
+      model: String(process.env.QUESTION_AI_MODEL || 'openai/gpt-oss-20b').trim(),
       temperature: 0.1, max_tokens: 1100,
       messages: [
         { role: 'system', content: 'Create one factual Indian government-exam current-affairs MCQ strictly from supplied source text. If source text does not support a clear answer, return {"skip":true}. Never infer missing facts. Return JSON only, no markdown. Provide English and Hindi. Schema: {"skip":false,"title":"...","summary":"...","question":"...","options":["...","...","...","..."],"correctAnswer":0,"explanation":"...","topic":"National|International|Economy|Science|Sports|Other","hi":{"title":"...","summary":"...","question":"...","options":["...","...","...","..."],"explanation":"..."}}' },
