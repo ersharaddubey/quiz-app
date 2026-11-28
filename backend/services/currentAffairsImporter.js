@@ -1,4 +1,5 @@
 const CurrentAffair = require('../models/CurrentAffair');
+const { generateAIText } = require('./aiProvider');
 
 function decodeXml(value = '') {
   return String(value).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
@@ -24,35 +25,10 @@ function allowedFeed(url, allowedHosts) {
   } catch (_) { return false; }
 }
 async function createQuestionFromItem(item, sourceName) {
-  const endpoint = process.env.QUESTION_AI_API_URL;
-  const apiKey = process.env.QUESTION_AI_API_KEY;
-  if (!endpoint || !apiKey) throw new Error('Question AI provider is not configured');
-  let response;
-  let payload;
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: String(process.env.QUESTION_AI_MODEL || 'openai/gpt-oss-20b').trim(),
-      temperature: 0.1, max_tokens: 1800,
-      messages: [
-        { role: 'system', content: 'Create one factual Indian government-exam current-affairs MCQ strictly from supplied source text. If source text does not support a clear answer, return {"skip":true}. Never infer missing facts. Return JSON only, no markdown. Provide English and Hindi. Schema: {"skip":false,"title":"...","summary":"...","question":"...","options":["...","...","...","..."],"correctAnswer":0,"explanation":"...","topic":"National|International|Economy|Science|Sports|Other","hi":{"title":"...","summary":"...","question":"...","options":["...","...","...","..."],"explanation":"..."}}' },
-        { role: 'user', content: JSON.stringify({ title: item.title, description: item.description.slice(0, 5000), source: item.link, sourceDate: item.date }) }
-      ]
-    }),
-    signal: AbortSignal.timeout(25000)
-    });
-    payload = await response.json().catch(() => ({}));
-    if (response.ok) break;
-    const message = payload.error?.message || 'AI generation request failed';
-    if (response.status !== 429 || attempt === 4) throw new Error(message);
-    const retryMatch = message.match(/try again in ([0-9.]+)s/i);
-    const waitMs = Math.max(8000, Math.min(20000, retryMatch ? Number(retryMatch[1]) * 1000 + 1000 : 10000));
-    await new Promise(resolve => setTimeout(resolve, waitMs));
-  }
-  if (!response.ok) throw new Error(payload.error?.message || 'AI generation request failed');
-  const raw = payload.choices?.[0]?.message?.content || '';
+  const raw = await generateAIText([
+    { role: 'system', content: 'Create one factual Indian government-exam current-affairs MCQ strictly from supplied source text. If source text does not support a clear answer, return {"skip":true}. Never infer missing facts. Return JSON only, no markdown. Provide English and Hindi. Schema: {"skip":false,"title":"...","summary":"...","question":"...","options":["...","...","...","..."],"correctAnswer":0,"explanation":"...","topic":"National|International|Economy|Science|Sports|Other","hi":{"title":"...","summary":"...","question":"...","options":["...","...","...","..."],"explanation":"..."}}' },
+    { role: 'user', content: JSON.stringify({ title: item.title, description: item.description.slice(0, 5000), source: item.link, sourceDate: item.date }) }
+  ], { temperature: 0.1, maxTokens: 1800, timeoutMs: 60000 });
   const json = JSON.parse(raw.replace(/^\s*\x60{3}(?:json)?/i, '').replace(/\x60{3}\s*$/i, '').trim());
   if (json.skip) return null;
   if (!json.question || !Array.isArray(json.options) || json.options.length !== 4 || !Number.isInteger(json.correctAnswer) || json.correctAnswer < 0 || json.correctAnswer > 3) {
