@@ -5,8 +5,9 @@ function readKeys(prefix) {
     .filter(name => new RegExp('^' + prefix + '_API_KEY_\\d+$').test(name))
     .sort((a, b) => Number(a.match(/(\d+)$/)[1]) - Number(b.match(/(\d+)$/)[1]))
     .map(name => process.env[name]);
-  const pooled = String(process.env[prefix + '_API_KEYS'] || '').split(/[\n,;]+/);
-  return [...new Set([...pooled, process.env[prefix + '_API_KEY'], ...numbered]
+  const pooled = [process.env[prefix + '_API_KEYS'], process.env[prefix + '_API_KEY']]
+    .flatMap(value => String(value || '').split(/[\n,;]+/));
+  return [...new Set([...pooled, ...numbered]
     .map(value => String(value || '').trim()).filter(Boolean))];
 }
 
