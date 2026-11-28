@@ -46,3 +46,28 @@ test('ignores unsupported question language values and safely defaults absent pr
   assert.equal(q.isPreviousYearQuestion, false);
   assert.equal(q.pyqSourceUrl, '');
 });
+
+test('normalizes repository mock question records without marking them as PYQ', () => {
+  const q = normalizeQuestion({
+    q_id: 'A1',
+    question_text: 'Which number is prime?',
+    options: [
+      { opt_id: '1', text: '9' },
+      { opt_id: '2', text: '11' },
+      { opt_id: '3', text: '15' },
+      { opt_id: '4', text: '21' }
+    ],
+    correct_opt_id: '2',
+    exam_name: 'NIMCET Mock 1',
+    sectionName: 'Mathematics',
+    sourceUrl: 'https://github.com/AdithSuresh2004/exam-questions/blob/main/nimcet/nimcet_mock1.json'
+  }, 'github:AdithSuresh2004/exam-questions');
+
+  assert.deepEqual(q.options, ['9', '11', '15', '21']);
+  assert.equal(q.correctAnswer, 1);
+  assert.equal(q.categoryName, 'PSU & Others');
+  assert.equal(q.subjectName, 'Quantitative Aptitude');
+  assert.equal(q.examName, 'NIMCET Mock 1');
+  assert.equal(q.sourceUrl, 'https://github.com/AdithSuresh2004/exam-questions/blob/main/nimcet/nimcet_mock1.json');
+  assert.equal(q.isPreviousYearQuestion, false);
+});

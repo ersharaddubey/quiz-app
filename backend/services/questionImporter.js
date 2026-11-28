@@ -30,37 +30,76 @@ function subjectForTriviaCategory(category) {
   return 'General Knowledge';
 }
 
+function subjectForExamSection(value) {
+  const c = key(value);
+  if (c.includes('math') || c.includes('quant')) return 'Quantitative Aptitude';
+  if (c.includes('reason') || c.includes('analytical') || c.includes('thinking') || c.includes('decision')) return 'Reasoning Ability';
+  if (c.includes('english') || c.includes('language')) return 'English Language';
+  if (c.includes('computer') || c.includes('programming')) return 'Computer Awareness';
+  if (c.includes('history')) return 'History';
+  if (c.includes('geography')) return 'Geography';
+  if (c.includes('polity')) return 'Polity';
+  if (c.includes('economy')) return 'Economy';
+  return 'General Knowledge';
+}
+
+function flattenQuestionPayload(payload, sourceUrl) {
+  if (payload && Array.isArray(payload.sections)) {
+    return payload.sections.flatMap(section => (section.questions || []).map(question => ({
+      ...question,
+      examName: payload.exam_name || payload.examName || payload.exam_id || '',
+      examYear: Number((payload.exam_name || '').match(/20\d{2}/)?.[0]) || null,
+      sectionName: section.section_name || section.sectionName || '',
+      paperName: payload.exam_name || payload.exam_id || '',
+      sourceUrl,
+    })));
+  }
+  return extractQuestionList(payload).map(question => ({ ...question, sourceUrl: question.sourceUrl || sourceUrl }));
+}
+
 function normalizeQuestion(raw, sourceName) {
   const isOpenTrivia = Array.isArray(raw.incorrect_answers) && raw.correct_answer != null;
-  let options = Array.isArray(raw.options) ? raw.options.slice() :
+  let optionRecords = Array.isArray(raw.options) ? raw.options.slice() :
     (isOpenTrivia ? [...raw.incorrect_answers, raw.correct_answer] : []);
-  let correctAnswer = raw.correctAnswer;
+  let options = optionRecords.map(option => clean(option && typeof option === 'object'
+    ? (option.text || option.label || option.value || '') : option));
+  const rawCorrect = raw.correctAnswer != null ? raw.correctAnswer :
+    (raw.correct_opt_id != null ? raw.correct_opt_id :
+      (raw.correct != null ? raw.correct : (raw.answer != null ? raw.answer : raw.correct_answer)));
+  let correctAnswer = rawCorrect;
   if (isOpenTrivia) {
     const correct = clean(raw.correct_answer);
-    // Shuffle the choices so the correct option is not always in the final position.
     for (let i = options.length - 1; i > 0; i--) {
       const j = crypto.randomInt(i + 1);
       [options[i], options[j]] = [options[j], options[i]];
+      [optionRecords[i], optionRecords[j]] = [optionRecords[j], optionRecords[i]];
     }
     correctAnswer = options.findIndex(option => key(option) === key(correct));
-  } else if (typeof correctAnswer === 'string' && !/^\d+$/.test(correctAnswer)) {
-    correctAnswer = options.findIndex(option => key(option) === key(correctAnswer));
-  } else if (raw.correct_answer && !Array.isArray(raw.options)) {
-    correctAnswer = options.findIndex(option => key(option) === key(raw.correct_answer));
-  } else {
-    correctAnswer = Number(correctAnswer);
+  } else if (raw.correct_opt_id != null) {
+    correctAnswer = optionRecords.findIndex(option => String(option && typeof option === 'object' ? option.opt_id : '') === String(raw.correct_opt_id));
+  } else if (typeof rawCorrect === 'string' && Array.isArray(raw.options) && raw.options.some(option => option && typeof option === 'object')) {
+    const labelIndex = optionRecords.findIndex(option => String(option.opt_id || option.label || '') === rawCorrect);
+    correctAnswer = labelIndex >= 0 ? labelIndex : Number(rawCorrect);
+  } else if (typeof rawCorrect === 'string' && !/^\d+$/.test(rawCorrect)) {
+    correctAnswer = options.findIndex(option => key(option) === key(rawCorrect));
+  } else if (rawCorrect != null) {
+    correctAnswer = Number(rawCorrect);
+    // Datasets using the correct field conventionally number choices from 1.
+    if (raw.correct != null && correctAnswer >= 1 && correctAnswer <= options.length) correctAnswer -= 1;
   }
 
   const triviaCategory = clean(raw.category || '');
   const defaultCategory = clean(process.env.QUESTION_DEFAULT_CATEGORY || 'SSC');
+  const sectionName = clean(raw.sectionName || raw.section_name || '');
+  const sectionSubject = subjectForExamSection(sectionName || raw.subject || raw.topic || raw.subcategory);
+  const rawSubject = clean(raw.subjectName || raw.subject || raw.topic || raw.subcategory || '');
+  const subjectName = sectionName ? sectionSubject : (rawSubject.toLowerCase() === 'general' ? sectionSubject : (rawSubject || (isOpenTrivia ? subjectForTriviaCategory(triviaCategory) : '')));
   return {
-    question: clean(raw.question || raw.questionText || raw.text),
-    options: options.map(clean),
+    question: clean(raw.question || raw.questionText || raw.question_text || raw.text),
+    options,
     correctAnswer,
-    // Open Trivia DB is general trivia, not an exam-specific PYQ bank. It is
-    // deliberately placed in one configured general-practice exam category.
-    categoryName: clean(raw.categoryName || raw.exam || raw.examName || (isOpenTrivia ? defaultCategory : raw.category)),
-    subjectName: clean(raw.subjectName || raw.subject || raw.topic || raw.subcategory || (isOpenTrivia ? subjectForTriviaCategory(triviaCategory) : '')),
+    categoryName: clean(raw.categoryName || raw.category || raw.exam || ((raw.exam_name || raw.examName) ? (process.env.QUESTION_GITHUB_DEFAULT_CATEGORY || 'PSU & Others') : (isOpenTrivia ? defaultCategory : ''))),
+    subjectName,
     syllabusName: clean(raw.syllabusName || raw.syllabus || raw.chapter),
     difficulty: normalizeDifficulty(raw.difficulty),
     explanation: clean(raw.explanation || raw.solution || ''),
@@ -68,6 +107,7 @@ function normalizeQuestion(raw, sourceName) {
     optionsHi: Array.isArray(raw.optionsHi || raw.options_hi) ? (raw.optionsHi || raw.options_hi).map(clean) : [],
     explanationHi: clean(raw.explanationHi || raw.explanation_hi || ''),
     examName: clean(raw.examName || raw.exam_name || ''),
+    sourceUrl: clean(raw.sourceUrl || raw.source_url || ''),
     examYear: Number.isInteger(Number(raw.examYear || raw.exam_year)) ? Number(raw.examYear || raw.exam_year) : null,
     paperName: clean(raw.paperName || raw.paper_name || ''),
     pyqSourceUrl: clean(raw.pyqSourceUrl || raw.pyq_source_url || ''),
@@ -105,8 +145,16 @@ function extractQuestionList(payload) {
 }
 
 async function fetchQuestionSources() {
-  const urls = [process.env.QUESTION_SOURCE_URLS, process.env.QUESTION_API_URLS]
-    .filter(Boolean).join(',').split(',').map(v => v.trim()).filter(Boolean);
+  // Keyless public practice mock sets. They are not represented as official PYQs.
+  const builtInGitHubSources = [
+    'https://raw.githubusercontent.com/AdithSuresh2004/exam-questions/main/nimcet/nimcet_mock1.json',
+    'https://raw.githubusercontent.com/AdithSuresh2004/exam-questions/main/nimcet/nimcet_mock2.json',
+    'https://raw.githubusercontent.com/AdithSuresh2004/exam-questions/main/cuetmca/cuet_cs_mock1.json',
+  ];
+  const urls = [...new Set([...builtInGitHubSources,
+    ...[process.env.QUESTION_SOURCE_URLS, process.env.QUESTION_API_URLS]
+      .filter(Boolean).join(',').split(',').map(v => v.trim()).filter(Boolean)
+  ])];
   const results = [];
   const errors = [];
   for (const url of urls) {
@@ -115,7 +163,7 @@ async function fetchQuestionSources() {
       if (payload.response_code && payload.response_code !== 0) {
         throw new Error(`Open Trivia DB response_code ${payload.response_code}`);
       }
-      results.push({ name: url, questions: extractQuestionList(payload) });
+      results.push({ name: url, questions: flattenQuestionPayload(payload, url) });
     } catch (error) { errors.push(`${url}: ${error.message}`); }
   }
   return { results, errors };
@@ -201,6 +249,7 @@ async function saveQuestion(raw, sourceName, stats, errors) {
       examYear: q.examYear,
       paperName: q.paperName,
       pyqSourceUrl: q.pyqSourceUrl,
+      sourceUrl: q.sourceUrl,
       questionLanguage: q.questionLanguage,
       translation: q.translation,
       isPreviousYearQuestion: q.isPreviousYearQuestion,
@@ -228,7 +277,7 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
       for (const raw of source.questions) await saveQuestion(raw, source.name, stats, errors);
     }
 
-    if (hasConfiguredAIProviders()) {
+    if (process.env.QUESTION_AI_ENABLED === 'true' && hasConfiguredAIProviders()) {
       try {
         const ai = await fetchAiQuestions();
         sourceNames.push('ai-provider');
@@ -237,7 +286,7 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
       } catch (error) { errors.push(`AI source: ${error.message}`); }
     }
 
-    if (!sourceNames.length && !errors.length) errors.push('No question sources configured. Set QUESTION_API_URLS and/or QUESTION_SOURCE_URLS, or configure at least one supported AI provider API key.');
+    if (!sourceNames.length && !errors.length) errors.push('No question sources configured. Add a supported public JSON/GitHub source; AI is optional and only runs when QUESTION_AI_ENABLED=true.');
     const status = errors.length ? (stats.inserted || stats.duplicates ? 'partial' : 'failed') : 'success';
     Object.assign(run, { finishedAt: new Date(), status, ...stats, errors: errors.slice(0, 100), sources: sourceNames });
     await run.save();
@@ -249,4 +298,4 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
   }
 }
 
-module.exports = { importQuestions, hashQuestion, normalizeQuestion, extractQuestionList, subjectForTriviaCategory };
+module.exports = { importQuestions, hashQuestion, normalizeQuestion, extractQuestionList, subjectForTriviaCategory, subjectForExamSection, flattenQuestionPayload };
