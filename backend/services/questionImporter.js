@@ -122,27 +122,37 @@ async function fetchQuestionSources() {
 }
 
 async function fetchAiQuestions() {
-  if (!hasConfiguredAIProviders()) return { questions: [], error: null };
-
-  // Give the model the real category/subject pairs from MongoDB. This avoids
-  // guessed names and lets one import fill the existing exam sections.
+  if (!hasConfiguredAIProviders()) return { questions: [], errors: [] };
   const categories = await Category.find({ isActive: true }).select('_id name').lean();
   const subjects = await Subject.find({ isActive: true }).select('name category').lean();
   const categoryById = new Map(categories.map(c => [String(c._id), c.name]));
-  const pairs = subjects
-    .filter(s => categoryById.has(String(s.category)))
+  const pairs = subjects.filter(s => categoryById.has(String(s.category)))
     .map(s => ({ categoryName: categoryById.get(String(s.category)), subjectName: s.name }));
   if (!pairs.length) throw new Error('No active category/subject pairs found. Seed the existing categories and subjects first.');
 
-  const count = Math.min(Math.max(Number(process.env.QUESTION_AI_BATCH_SIZE || 25), 1), 60);
-  const prompt = `Create ${count} original multiple-choice practice questions for Indian competitive exams. Return JSON only: {"questions":[{"question":"...","options":["A","B","C","D"],"correctAnswer":0,"categoryName":"EXACT CATEGORY","subjectName":"EXACT SUBJECT","difficulty":"Easy|Medium|Hard","explanation":"brief explanation"}]}.\n\nUse ONLY these exact existing category/subject pairs (copy names exactly):\n${JSON.stringify(pairs)}\n\nDistribute questions across different categories and subjects, prioritizing UPSC, SSC, Banking, Railways, Defence and State PSC. Use Indian exam-relevant static facts, maths, reasoning, English, science, polity, history, geography and economy. Do not create current-affairs claims or claim these are previous-year questions. Exactly four distinct options; correctAnswer is zero-based. Do not add markdown.`;
-
-  const content = await generateAIText([
-    { role: 'user', content: prompt }
-  ], { temperature: 0.2, maxTokens: Math.max(2500, count * 180), timeoutMs: 90000 });
-  const cleaned = content.replace(/^\x60\x60\x60(?:json)?\s*/i, '').replace(/\s*\x60\x60\x60$/, '');
-  const parsed = JSON.parse(cleaned);
-  return { questions: extractQuestionList(parsed) };
+  const total = Math.min(Math.max(Number(process.env.QUESTION_AI_BATCH_SIZE || 25), 1), 60);
+  const chunkSize = Math.min(Math.max(Number(process.env.QUESTION_AI_CHUNK_SIZE || 5), 1), 10);
+  const questions = [], errors = [];
+  for (let offset = 0; offset < total; offset += chunkSize) {
+    const count = Math.min(chunkSize, total - offset);
+    const prompt = `Create exactly ${count} original multiple-choice practice questions for Indian competitive exams. Return compact JSON only: {"questions":[{"question":"...","options":["A","B","C","D"],"correctAnswer":0,"categoryName":"EXACT CATEGORY","subjectName":"EXACT SUBJECT","difficulty":"Easy|Medium|Hard","explanation":"brief factual explanation"}]}.
+Use ONLY these exact existing category/subject pairs (copy names exactly):
+${JSON.stringify(pairs)}
+Distribute questions across categories and subjects, prioritizing UPSC, SSC, Banking, Railways, Defence and State PSC. Use exam-relevant static facts, maths, reasoning, English, science, polity, history, geography and economy. No current-affairs claims and do not claim these are previous-year questions. Exactly four distinct options; correctAnswer is zero-based. Keep explanations concise. No markdown.`;
+    try {
+      const content = await generateAIText([{ role: 'user', content: prompt }], {
+        temperature: 0.2, maxTokens: Math.min(2200, Math.max(700, count * 220)), timeoutMs: 90000
+      });
+      const cleaned = content.replace(/^\x60\x60\x60(?:json)?\s*/i, '').replace(/\s*\x60\x60\x60$/, '');
+      const batch = extractQuestionList(JSON.parse(cleaned));
+      if (!batch.length) throw new Error('Provider returned an empty question batch');
+      questions.push(...batch.slice(0, count));
+    } catch (error) {
+      errors.push('Batch ' + (Math.floor(offset / chunkSize) + 1) + ': ' + String(error.message || error).slice(0, 220));
+    }
+  }
+  if (!questions.length) throw new Error('All small AI batches failed: ' + errors.join(' | '));
+  return { questions, errors };
 }
 
 function escapeRegex(value) { return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
@@ -223,6 +233,7 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
         const ai = await fetchAiQuestions();
         sourceNames.push('ai-provider');
         for (const raw of ai.questions) await saveQuestion(raw, 'ai-provider', stats, errors);
+        if (Array.isArray(ai.errors)) errors.push(...ai.errors.map(message => 'AI batch: ' + message));
       } catch (error) { errors.push(`AI source: ${error.message}`); }
     }
 

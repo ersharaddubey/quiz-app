@@ -45,6 +45,88 @@ function hasConfiguredAIProviders() {
   return getProviderConfigs().length > 0;
 }
 
+const keyCooldowns = new Map();
+
+function parseDurationMs(value) {
+  if (!value) return 0;
+  const raw = String(value).trim();
+  if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw) * 1000;
+  let total = 0, match;
+  const pattern = /(\d+(?:\.\d+)?)(ms|s|m|h)/g;
+  while ((match = pattern.exec(raw))) {
+    const factor = match[2] === 'h' ? 3600000 : match[2] === 'm' ? 60000 : match[2] === 's' ? 1000 : 1;
+    total += Number(match[1]) * factor;
+  }
+  return total;
+}
+function getRetryAfterMs(response) {
+  const value = response.headers.get('retry-after');
+  if (value) {
+    const seconds = Number(value);
+    if (Number.isFinite(seconds)) return Math.max(1000, seconds * 1000);
+    const date = Date.parse(value);
+    if (Number.isFinite(date)) return Math.max(1000, date - Date.now());
+  }
+  const resets = ['x-ratelimit-reset-requests','x-ratelimit-reset-tokens','ratelimit-reset']
+    .map(name => parseDurationMs(response.headers.get(name))).filter(ms => ms > 0);
+  return resets.length ? Math.max(...resets) : 0;
+}
+function makeProviderError(response, payload) {
+  const detail = String(payload.error?.message || payload.message || '').slice(0, 180);
+  const error = new Error('HTTP ' + response.status + ': ' + detail);
+  error.status = response.status;
+  error.retryAfterMs = getRetryAfterMs(response);
+  error.isQuotaError = response.status === 429 || response.status === 529 ||
+    (response.status === 403 && /quota|rate.?limit|resource exhausted|billing limit/i.test(detail));
+  return error;
+}
+function getQuotaCollection() {
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) return null;
+    return mongoose.connection.collection('ai_provider_quota_state');
+  } catch (_) { return null; }
+}
+async function readCooldown(stateKey) {
+  const local = keyCooldowns.get(stateKey) || 0;
+  const collection = getQuotaCollection();
+  if (!collection) return local;
+  try {
+    const saved = await collection.findOne({ _id: stateKey });
+    const until = Number(saved?.cooldownUntil || 0);
+    if (until > local) await saveCooldown(stateKey, until);
+    else if (local > until) return local;
+    return until;
+  } catch (_) { return local; }
+}
+async function saveCooldown(stateKey, until) {
+  keyCooldowns.set(stateKey, until);
+  const collection = getQuotaCollection();
+  if (!collection) return;
+  try {
+    await collection.updateOne({ _id: stateKey }, {
+      $set: { cooldownUntil: until, updatedAt: new Date() }
+    }, { upsert: true });
+  } catch (_) { /* local cooldown remains as a safe fallback */ }
+}
+async function clearCooldown(stateKey) {
+  keyCooldowns.delete(stateKey);
+  const collection = getQuotaCollection();
+  if (!collection) return;
+  try { await collection.deleteOne({ _id: stateKey }); } catch (_) {}
+}
+function getProviderQuotaStatus() {
+  const now = Date.now();
+  return getProviderConfigs().map(config => ({
+    provider: config.name, configuredKeys: config.keys.length,
+    keys: config.keys.map((_, index) => {
+      const until = keyCooldowns.get(config.name + ':' + index) || 0;
+      return { keyIndex: index + 1, available: until <= now,
+        retryAfterSeconds: until > now ? Math.ceil((until - now) / 1000) : 0 };
+    })
+  }));
+}
+
 function extractJsonText(text) {
   return String(text || '').trim().replace(/^\x60{3}(?:json)?\s*/i, '').replace(/\s*\x60{3}$/, '');
 }
@@ -66,7 +148,7 @@ async function callProvider(config, apiKey, messages, options) {
       signal: AbortSignal.timeout(timeout)
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + String(payload.error?.message || '').slice(0, 180));
+    if (!response.ok) throw makeProviderError(response, payload);
     const output = (payload.candidates?.[0]?.content?.parts || []).map(part => part.text || '').join('').trim();
     if (!output) throw new Error('empty response');
     return output;
@@ -86,7 +168,7 @@ async function callProvider(config, apiKey, messages, options) {
       signal: AbortSignal.timeout(timeout)
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + String(payload.error?.message || '').slice(0, 180));
+    if (!response.ok) throw makeProviderError(response, payload);
     const output = (payload.content || []).filter(part => part.type === 'text').map(part => part.text).join('').trim();
     if (!output) throw new Error('empty response');
     return output;
@@ -101,7 +183,7 @@ async function callProvider(config, apiKey, messages, options) {
     signal: AbortSignal.timeout(timeout)
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + String(payload.error?.message || '').slice(0, 180));
+  if (!response.ok) throw makeProviderError(response, payload);
   const output = payload.choices?.[0]?.message?.content || '';
   if (!output) throw new Error('empty response');
   return output;
@@ -109,20 +191,42 @@ async function callProvider(config, apiKey, messages, options) {
 
 async function generateAIText(messages, options = {}) {
   const errors = [];
+  let earliestRetryAt = 0;
   for (const config of getProviderConfigs()) {
     const start = (rotation.get(config.name) || 0) % config.keys.length;
     for (let offset = 0; offset < config.keys.length; offset++) {
       const index = (start + offset) % config.keys.length;
+      const stateKey = config.name + ':' + index;
+      const cooldownUntil = await readCooldown(stateKey);
+      if (cooldownUntil > Date.now()) {
+        earliestRetryAt = !earliestRetryAt ? cooldownUntil : Math.min(earliestRetryAt, cooldownUntil);
+        errors.push(config.name + ' key #' + (index + 1) + ': cooling down');
+        continue;
+      }
+      if (cooldownUntil) await clearCooldown(stateKey);
       try {
         const output = await callProvider(config, config.keys[index], messages, options);
         rotation.set(config.name, (index + 1) % config.keys.length);
+        await clearCooldown(stateKey);
         return extractJsonText(output);
       } catch (error) {
+        const retryMs = error.retryAfterMs || (error.isQuotaError ? 60000 :
+          (error.status === 503 || error.status === 529 ? 15000 : 0));
+        if (retryMs > 0) {
+          const until = Date.now() + Math.min(retryMs, 86400000);
+          await saveCooldown(stateKey, until);
+          earliestRetryAt = !earliestRetryAt ? until : Math.min(earliestRetryAt, until);
+        }
         errors.push(config.name + ' key #' + (index + 1) + ': ' + String(error.message || error).slice(0, 220));
       }
     }
   }
-  throw new Error('All configured AI providers/keys failed: ' + (errors.join(' | ') || 'no provider keys configured'));
+  const waitSeconds = earliestRetryAt ? Math.max(1, Math.ceil((earliestRetryAt - Date.now()) / 1000)) : 0;
+  const error = new Error('All configured AI providers/keys failed or are rate-limited. ' +
+    (waitSeconds ? 'Retry after approximately ' + waitSeconds + ' seconds. ' : '') +
+    (errors.join(' | ') || 'no provider keys configured'));
+  error.retryAfterSeconds = waitSeconds;
+  throw error;
 }
 
-module.exports = { generateAIText, getProviderConfigs, hasConfiguredAIProviders, readKeys };
+module.exports = { generateAIText, getProviderConfigs, hasConfiguredAIProviders, readKeys, getProviderQuotaStatus };
