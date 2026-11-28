@@ -214,7 +214,7 @@ async function generateAIText(messages, options = {}) {
           (error.status === 503 || error.status === 529 ? 15000 : 0));
         if (retryMs > 0) {
           const until = Date.now() + Math.min(retryMs, 86400000);
-          keyCooldowns.set(stateKey, until);
+          await saveCooldown(stateKey, until);
           earliestRetryAt = !earliestRetryAt ? until : Math.min(earliestRetryAt, until);
         }
         errors.push(config.name + ' key #' + (index + 1) + ': ' + String(error.message || error).slice(0, 220));
