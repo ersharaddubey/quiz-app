@@ -98,7 +98,7 @@ function normalizeQuestion(raw, sourceName) {
     question: clean(raw.question || raw.questionText || raw.question_text || raw.text),
     options,
     correctAnswer,
-    categoryName: clean(raw.categoryName || raw.exam || raw.examName || (raw.exam_name ? (process.env.QUESTION_GITHUB_DEFAULT_CATEGORY || 'PSU & Others') : (isOpenTrivia ? defaultCategory : raw.category))),
+    categoryName: clean(raw.categoryName || raw.category || raw.exam || ((raw.exam_name || raw.examName) ? (process.env.QUESTION_GITHUB_DEFAULT_CATEGORY || 'PSU & Others') : (isOpenTrivia ? defaultCategory : ''))),
     subjectName,
     syllabusName: clean(raw.syllabusName || raw.syllabus || raw.chapter),
     difficulty: normalizeDifficulty(raw.difficulty),
