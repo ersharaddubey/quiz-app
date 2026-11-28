@@ -3,9 +3,9 @@ const rotation = new Map();
 function readKeys(prefix) {
   const numbered = Object.keys(process.env)
     .filter(name => new RegExp('^' + prefix + '_API_KEY_\\d+$').test(name))
-    .sort((a, b) => Number(a.match(/(\\d+)$/)[1]) - Number(b.match(/(\\d+)$/)[1]))
+    .sort((a, b) => Number(a.match(/(\d+)$/)[1]) - Number(b.match(/(\d+)$/)[1]))
     .map(name => process.env[name]);
-  const pooled = String(process.env[prefix + '_API_KEYS'] || '').split(/[\\n,;]+/);
+  const pooled = String(process.env[prefix + '_API_KEYS'] || '').split(/[\n,;]+/);
   return [...new Set([...pooled, process.env[prefix + '_API_KEY'], ...numbered]
     .map(value => String(value || '').trim()).filter(Boolean))];
 }
@@ -27,7 +27,6 @@ function getProviderConfigs() {
     String(process.env.MISTRAL_BASE_URL || 'https://api.mistral.ai/v1/chat/completions').trim());
   add('together', readKeys('TOGETHER'), String(process.env.TOGETHER_MODEL || 'meta-llama/Llama-3.3-70B-Instruct-Turbo').trim(),
     String(process.env.TOGETHER_BASE_URL || 'https://api.together.xyz/v1/chat/completions').trim());
-  // Backward compatibility with the previous custom OpenAI-compatible endpoint.
   if (process.env.QUESTION_AI_API_URL && process.env.QUESTION_AI_API_KEY) {
     configs.push({ name: 'legacy', keys: [String(process.env.QUESTION_AI_API_KEY).trim()],
       model: String(process.env.QUESTION_AI_MODEL || 'openai/gpt-oss-20b').trim(),
@@ -46,13 +45,13 @@ function hasConfiguredAIProviders() {
 }
 
 function extractJsonText(text) {
-  return String(text || '').trim().replace(/^\x60{3}(?:json)?\\s*/i, '').replace(/\\s*\x60{3}$/, '');
+  return String(text || '').trim().replace(/^\x60{3}(?:json)?\s*/i, '').replace(/\s*\x60{3}$/, '');
 }
 
 async function callProvider(config, apiKey, messages, options) {
   const timeout = options.timeoutMs || 60000;
   if (config.kind === 'gemini') {
-    const systemText = messages.filter(message => message.role === 'system').map(message => message.content).join('\\n\\n');
+    const systemText = messages.filter(message => message.role === 'system').map(message => message.content).join('\n\n');
     const contents = messages.filter(message => message.role !== 'system').map(message => ({
       role: message.role === 'assistant' ? 'model' : 'user', parts: [{ text: String(message.content || '') }]
     }));
@@ -73,7 +72,7 @@ async function callProvider(config, apiKey, messages, options) {
   }
 
   if (config.kind === 'anthropic') {
-    const system = messages.filter(message => message.role === 'system').map(message => message.content).join('\\n\\n');
+    const system = messages.filter(message => message.role === 'system').map(message => message.content).join('\n\n');
     const conversation = messages.filter(message => message.role !== 'system').map(message => ({
       role: message.role === 'assistant' ? 'assistant' : 'user', content: String(message.content || '')
     }));
@@ -118,7 +117,6 @@ async function generateAIText(messages, options = {}) {
         rotation.set(config.name, (index + 1) % config.keys.length);
         return extractJsonText(output);
       } catch (error) {
-        // Never log or return credentials. Only provider, key slot and sanitized error are exposed.
         errors.push(config.name + ' key #' + (index + 1) + ': ' + String(error.message || error).slice(0, 220));
       }
     }
