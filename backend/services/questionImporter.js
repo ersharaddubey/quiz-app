@@ -157,14 +157,20 @@ async function fetchQuestionSources() {
   ])];
   const results = [];
   const errors = [];
-  for (const url of urls) {
+  const fetched = await Promise.all(urls.map(async (url) => {
     try {
       const payload = await fetchJson(url);
       if (payload.response_code && payload.response_code !== 0) {
         throw new Error(`Open Trivia DB response_code ${payload.response_code}`);
       }
-      results.push({ name: url, questions: flattenQuestionPayload(payload, url) });
-    } catch (error) { errors.push(`${url}: ${error.message}`); }
+      return { result: { name: url, questions: flattenQuestionPayload(payload, url) } };
+    } catch (error) {
+      return { error: `${url}: ${error.message}` };
+    }
+  }));
+  for (const item of fetched) {
+    if (item.result) results.push(item.result);
+    if (item.error) errors.push(item.error);
   }
   return { results, errors };
 }
@@ -263,6 +269,18 @@ async function saveQuestion(raw, sourceName, stats, errors) {
   }
 }
 
+async function mapWithConcurrency(items, concurrency, worker) {
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      await worker(items[index], index);
+    }
+  }));
+}
+
 async function importQuestions({ trigger = 'github-actions' } = {}) {
   const ImportRun = require('../models/QuestionImportRun');
   const run = await ImportRun.create({ trigger });
@@ -274,14 +292,14 @@ async function importQuestions({ trigger = 'github-actions' } = {}) {
     errors.push(...sources.errors);
     for (const source of sources.results) {
       sourceNames.push(source.name);
-      for (const raw of source.questions) await saveQuestion(raw, source.name, stats, errors);
+      await mapWithConcurrency(source.questions, 12, raw => saveQuestion(raw, source.name, stats, errors));
     }
 
     if (process.env.QUESTION_AI_ENABLED === 'true' && hasConfiguredAIProviders()) {
       try {
         const ai = await fetchAiQuestions();
         sourceNames.push('ai-provider');
-        for (const raw of ai.questions) await saveQuestion(raw, 'ai-provider', stats, errors);
+        await mapWithConcurrency(ai.questions, 12, raw => saveQuestion(raw, 'ai-provider', stats, errors));
         if (Array.isArray(ai.errors)) errors.push(...ai.errors.map(message => 'AI batch: ' + message));
       } catch (error) { errors.push(`AI source: ${error.message}`); }
     }
