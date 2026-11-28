@@ -18,6 +18,25 @@ GitHub Actions uses UTC cron. The question importer already runs at minute 17 ev
 
 The schedule checks configured sources; it cannot import from every portal automatically merely because a portal URL is listed. Most exam portals expose HTML/PDF notices, not stable public RSS/JSON feeds. Their URLs are recorded for discovery and review; feed URLs remain empty until an actual supported, terms-permitted feed is verified.
 
+## Keyless GitHub question-bank imports
+
+The question importer includes a small built-in, no-API-key starter source from the public
+[AdithSuresh2004/exam-questions](https://github.com/AdithSuresh2004/exam-questions) repository:
+
+- NIMCET Mock 1 and Mock 2
+- CUET PG MCA Mock 1
+
+These are practice mock sets, not official previous-year questions. They are stored under the existing
+`PSU & Others` category and mapped to the existing subject taxonomy. Each imported question stores its
+original GitHub file URL in `sourceUrl`, and remains `verified: false`.
+
+AI generation is now opt-in: it runs only when `QUESTION_AI_ENABLED=true` and a supported provider key
+is configured. Leave it unset or set it to `false` to run the keyless source importer only.
+
+The importer still supports additional public JSON feeds through `QUESTION_SOURCE_URLS` or
+`QUESTION_API_URLS`. Only use sources whose question content is explicitly reusable; a public repository
+or MIT licence on its code does not automatically grant rights to unrelated third-party question content.
+
 ## Configure in backend hosting
 
 Set these variables on the backend deployment (never commit secrets):
