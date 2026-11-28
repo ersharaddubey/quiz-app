@@ -80,6 +80,41 @@ function makeProviderError(response, payload) {
     (response.status === 403 && /quota|rate.?limit|resource exhausted|billing limit/i.test(detail));
   return error;
 }
+function getQuotaCollection() {
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) return null;
+    return mongoose.connection.collection('ai_provider_quota_state');
+  } catch (_) { return null; }
+}
+async function readCooldown(stateKey) {
+  const local = keyCooldowns.get(stateKey) || 0;
+  const collection = getQuotaCollection();
+  if (!collection) return local;
+  try {
+    const saved = await collection.findOne({ _id: stateKey });
+    const until = Number(saved?.cooldownUntil || 0);
+    if (until > local) await saveCooldown(stateKey, until);
+    else if (local > until) return local;
+    return until;
+  } catch (_) { return local; }
+}
+async function saveCooldown(stateKey, until) {
+  keyCooldowns.set(stateKey, until);
+  const collection = getQuotaCollection();
+  if (!collection) return;
+  try {
+    await collection.updateOne({ _id: stateKey }, {
+      $set: { cooldownUntil: until, updatedAt: new Date() }
+    }, { upsert: true });
+  } catch (_) { /* local cooldown remains as a safe fallback */ }
+}
+async function clearCooldown(stateKey) {
+  keyCooldowns.delete(stateKey);
+  const collection = getQuotaCollection();
+  if (!collection) return;
+  try { await collection.deleteOne({ _id: stateKey }); } catch (_) {}
+}
 function getProviderQuotaStatus() {
   const now = Date.now();
   return getProviderConfigs().map(config => ({
@@ -162,17 +197,17 @@ async function generateAIText(messages, options = {}) {
     for (let offset = 0; offset < config.keys.length; offset++) {
       const index = (start + offset) % config.keys.length;
       const stateKey = config.name + ':' + index;
-      const cooldownUntil = keyCooldowns.get(stateKey) || 0;
+      const cooldownUntil = await readCooldown(stateKey);
       if (cooldownUntil > Date.now()) {
         earliestRetryAt = !earliestRetryAt ? cooldownUntil : Math.min(earliestRetryAt, cooldownUntil);
         errors.push(config.name + ' key #' + (index + 1) + ': cooling down');
         continue;
       }
-      if (cooldownUntil) keyCooldowns.delete(stateKey);
+      if (cooldownUntil) await clearCooldown(stateKey);
       try {
         const output = await callProvider(config, config.keys[index], messages, options);
         rotation.set(config.name, (index + 1) % config.keys.length);
-        keyCooldowns.delete(stateKey);
+        await clearCooldown(stateKey);
         return extractJsonText(output);
       } catch (error) {
         const retryMs = error.retryAfterMs || (error.isQuotaError ? 60000 :
